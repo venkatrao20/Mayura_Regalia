@@ -1,8 +1,28 @@
-import { apiRequest } from '../../services/api';
+import { apiRequest as baseRequest } from '../../services/api';
 import authService from '../../services/authService';
 
 function authHeaders() {
   return { Authorization: `Bearer ${authService.getToken()}` };
+}
+
+const EXPIRED_MESSAGES = ['Invalid or expired admin token', 'Admin authentication required'];
+
+// Same as the shared apiRequest, but an expired/invalid admin token clears the
+// session and returns to the login page instead of leaving a dead error on screen.
+async function apiRequest(path, options = {}) {
+  if (!authService.getToken()) {
+    authService.handleExpired();
+    throw new Error('Admin session expired. Please log in again.');
+  }
+  try {
+    return await baseRequest(path, options);
+  } catch (error) {
+    if (EXPIRED_MESSAGES.includes(error.message)) {
+      authService.handleExpired();
+      throw new Error('Admin session expired. Please log in again.');
+    }
+    throw error;
+  }
 }
 
 // Generic REST resource client used by every simple admin module
@@ -34,6 +54,11 @@ export const ordersApi = {
   get: (id) => apiRequest(`/orders/${id}`, { headers: authHeaders() }),
   updateStatus: (id, data) => apiRequest(`/orders/${id}/status`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) }),
   remove: (id) => apiRequest(`/orders/${id}`, { method: 'DELETE', headers: authHeaders() }),
+};
+
+export const returnsApi = {
+  list: (query = '') => apiRequest(`/returns${query}`, { headers: authHeaders() }),
+  update: (id, data) => apiRequest(`/returns/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) }),
 };
 
 export const paymentsApi = {

@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ordersApi } from '../services/adminApi';
 import { formatCurrency, formatDate } from '../utils';
+import AdminIcon from '../components/AdminIcon';
 
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 
 const Orders = () => {
+  const [shipForm, setShipForm] = useState({ courierName: '', trackingNumber: '', trackingUrl: '' });
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -58,6 +60,27 @@ const Orders = () => {
     }
   };
 
+  const openOrder = (o) => {
+    setViewing(o);
+    setShipForm({ courierName: o.courierName || '', trackingNumber: o.trackingNumber || '', trackingUrl: o.trackingUrl || '' });
+  };
+
+  const saveShipping = async () => {
+    setUpdatingId(viewing.id);
+    setMessage('');
+    setError('');
+    try {
+      const updated = await ordersApi.updateStatus(viewing.id, shipForm);
+      setViewing({ ...viewing, ...updated });
+      setMessage(`Shipping details saved for ${viewing.orderNumber}. They appear on the customer's tracking page and in the "shipped" email.`);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const deleteOrder = async (order) => {
     if (!window.confirm(`Delete order ${order.orderNumber}? This cannot be undone.`)) return;
     try {
@@ -77,14 +100,14 @@ const Orders = () => {
       </div>
 
       <div className="admin-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order #, customer, email..." /></div>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order #, customer, email..." /></div>
         <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">All statuses</option>
           {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>)}
         </select>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
@@ -112,7 +135,7 @@ const Orders = () => {
                     </td>
                     <td>{formatDate(o.createdAt)}</td>
                     <td>
-                      <button className="table-action edit" onClick={() => setViewing(o)}>View</button>
+                      <button className="table-action edit" onClick={() => openOrder(o)}>View</button>
                       <button className="table-action delete" onClick={() => deleteOrder(o)}>Delete</button>
                     </td>
                   </tr>
@@ -141,6 +164,19 @@ const Orders = () => {
                 <li><span>Shipping</span><span>{formatCurrency(viewing.shippingFee)}</span></li>
                 <li><span>Total</span><span><strong>{formatCurrency(viewing.total)}</strong></span></li>
               </ul>
+              <div className="shipping-box" style={{ marginTop: 16, padding: 14, border: '1px solid #e5d9b6', borderRadius: 10, background: '#fffdf7' }}>
+                <strong>Shipping / tracking details</strong>
+                <small style={{ display: 'block', color: '#777', margin: '4px 0 10px' }}>Add these when you hand the parcel to the courier, then set the status to Shipped. The customer sees them on the tracking page and in the email.</small>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+                  <label>Courier<input value={shipForm.courierName} onChange={(e) => setShipForm({ ...shipForm, courierName: e.target.value })} placeholder="e.g. Delhivery, India Post" /></label>
+                  <label>Tracking number<input value={shipForm.trackingNumber} onChange={(e) => setShipForm({ ...shipForm, trackingNumber: e.target.value })} /></label>
+                  <label style={{ gridColumn: '1 / -1' }}>Tracking link (optional)<input value={shipForm.trackingUrl} onChange={(e) => setShipForm({ ...shipForm, trackingUrl: e.target.value })} placeholder="https://..." /></label>
+                </div>
+                <div style={{ marginTop: 10, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button type="button" className="save-btn" disabled={updatingId === viewing.id} onClick={saveShipping}>Save shipping details</button>
+                  <span style={{ fontSize: '0.85rem', color: '#777' }}>Status: {viewing.orderStatus}</span>
+                </div>
+              </div>
               <div className="table-wrap" style={{ marginTop: 16 }}>
                 <table className="admin-table">
                   <thead><tr><th>ITEM</th><th>PRICE</th><th>QTY</th><th>SUBTOTAL</th></tr></thead>

@@ -46,7 +46,7 @@ const Home = () => {
     },
     {
       video: '/videos/trending.mp4',
-      eyebrow: 'MAYURA EDIT',
+      eyebrow: 'MAYURA FAVOURITES',
       title: 'Trending Now',
       link: '/shop?sort=featured',
       chipImage: '/products/regalia-5.jpg',
@@ -54,7 +54,7 @@ const Home = () => {
     },
     {
       video: '/videos/hero-slide.mp4',
-      eyebrow: 'FASHION EDIT',
+      eyebrow: 'FASHION FIRST',
       title: 'Fashion Jewellery',
       link: '/shop?category=Fashion+Jewels',
       chipImage: '/products/regalia-2.jpg',
@@ -62,17 +62,10 @@ const Home = () => {
     },
     {
       video: '/videos/bridal-saree.mp4',
-      eyebrow: 'BRIDAL EDIT',
+      eyebrow: 'BRIDAL COLLECTION',
       title: 'Bridal Sarees',
       link: '/shop?category=Sarees',
       chipText: 'Bridal Silk Saree',
-    },
-    {
-      video: '/videos/sarees.mp4',
-      eyebrow: 'DRAPED IN GRACE',
-      title: 'Sarees',
-      link: '/shop?category=Sarees',
-      chipText: 'Kanjeevaram Silk Saree',
     },
     {
       video: '/videos/bags.mp4',
@@ -85,8 +78,10 @@ const Home = () => {
 
   const categories = [
     { name: 'GOLD JEWELLERY', icon: '✦', link: '/shop?category=Jewels' },
+    { name: 'SILVER', icon: '◈', link: '/shop?category=Silver' },
+    { name: 'GERMAN SILVER', icon: '✧', link: '/shop?category=German+Silver' },
     { name: 'FASHION JEWELLERY', video: '/videos/hero-slide.mp4', link: '/shop?category=Fashion+Jewels' },
-    { name: 'SAREES', video: '/videos/bridal-saree.mp4', link: '/shop?category=Sarees', focus: 'center 65%' },
+    { name: 'SAREES', icon: '❖', link: '/shop?category=Sarees' },
     { name: 'BAGS', video: '/videos/bags.mp4', link: '/shop?category=Bags' },
     { name: 'WATCHES', icon: '◷', link: '/shop?category=Watches' },
     { name: 'GIFTS', icon: '♡', link: '/shop?category=Gifts' },
@@ -146,17 +141,20 @@ const Home = () => {
     <div className="home-page">
       <HeroSection />
 
-      <section className="collection-highlights" aria-label="Shop highlights">
-        <ReelCarousel slides={reelSlides} />
-      </section>
-
       <section className="shop-by-category reveal-up" ref={categoryRef} id="categories">
-        <h2>Shop By Category</h2>
+        <div className="section-title-wrap">
+          <h2>Mayura Regalia Collections</h2>
+          <p className="section-subtitle">Explore our newly launched collection</p>
+        </div>
         <div className="category-grid">
           {categories.map((cat) => (
             <CategoryCard key={cat.name} {...cat} />
           ))}
         </div>
+      </section>
+
+      <section className="collection-highlights" aria-label="Shop highlights">
+        <ReelCarousel slides={reelSlides} />
       </section>
 
       <section className="featured-products reveal-up" ref={featuredRef}>

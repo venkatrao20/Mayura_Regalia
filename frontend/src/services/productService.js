@@ -89,6 +89,15 @@ const productService = {
               { name: 'Bracelets', slug: 'bracelets', query: { category: 'Bracelets' } },
             ],
           },
+          {
+            id: 'silver-jewellery',
+            name: 'SILVER JEWELLERY',
+            slug: 'silver-jewellery',
+            subcategories: [
+              { name: 'Silver', slug: 'silver', query: { category: 'Silver' } },
+              { name: 'German Silver', slug: 'german-silver', query: { category: 'German Silver' } },
+            ],
+          },
           { id: 'sarees', name: 'SAREES', slug: 'sarees', subcategories: [] },
           { id: 'bags', name: 'BAGS', slug: 'bags', materials: [], subcategories: [] },
           { id: 'watches', name: 'WATCHES', slug: 'watches', subcategories: [] },

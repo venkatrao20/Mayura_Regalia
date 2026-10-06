@@ -1,7 +1,7 @@
 const products = [
   {
     "id": 1,
-    "name": "Royal Kundan Necklace",
+    "name": "Kundan Necklace",
     "category": "Necklaces",
     "price": 2499,
     "originalPrice": 4999,
@@ -136,7 +136,7 @@ const products = [
     "material": "Premium Alloy",
     "color": "Blue & Gold",
     "inStock": true,
-    "description": "Elegant sapphire pendant on a delicate chain. A sophisticated addition to any jewelry collection.",
+    "description": "Elegant sapphire pendant on a delicate chain. A sophisticated addition to any jewellery collection.",
     "image": "/products/regalia-10.jpg"
   },
   {
@@ -165,7 +165,7 @@ const products = [
     "color": "Silver",
     "inStock": true,
     "description": "Elegant diamond-look stud earrings that sparkle beautifully. Perfect for everyday wear.",
-    "image": "/products/regalia-1.jpg"
+    "image": "/products/regalia-2.jpg"
   },
   {
     "id": 13,
@@ -179,7 +179,7 @@ const products = [
     "color": "Multi-Color",
     "inStock": true,
     "description": "Traditional meenakari work necklace with vibrant enamel designs.",
-    "image": "/products/regalia-2.jpg"
+    "image": "/products/regalia-3.jpg"
   },
   {
     "id": 14,
@@ -193,7 +193,7 @@ const products = [
     "color": "Gold",
     "inStock": true,
     "description": "Set of temple-inspired bangles with traditional Hindu motifs.",
-    "image": "/products/regalia-3.jpg"
+    "image": "/products/regalia-4.jpg"
   },
   {
     "id": 15,
@@ -207,11 +207,11 @@ const products = [
     "color": "Multi-Stone",
     "inStock": true,
     "description": "Set of three statement cocktail rings with colorful stone embellishments.",
-    "image": "/products/regalia-4.jpg"
+    "image": "/products/regalia-5.jpg"
   },
   {
     "id": 16,
-    "name": "Bridal Tiara",
+    "name": "Bridal Maang Tikka",
     "category": "Bridal Jewellery",
     "price": 2999,
     "originalPrice": 5999,
@@ -220,8 +220,8 @@ const products = [
     "material": "Premium Alloy",
     "color": "Gold",
     "inStock": true,
-    "description": "Gorgeous bridal tiara that adds sparkle and elegance to your bridal look.",
-    "image": "/products/regalia-5.jpg"
+    "description": "Gorgeous bridal maang tikka that adds sparkle and elegance to your bridal look.",
+    "image": "/products/regalia-6.jpg"
   },
   {
     "id": 17,
@@ -235,7 +235,7 @@ const products = [
     "color": "Gold",
     "inStock": true,
     "description": "Delicate gold chain bracelet that's perfect for layering or wearing alone.",
-    "image": "/products/regalia-6.jpg"
+    "image": "/products/regalia-7.jpg"
   },
   {
     "id": 18,
@@ -249,7 +249,7 @@ const products = [
     "color": "Gold & Silver",
     "inStock": true,
     "description": "Collection of traditional nose rings in various designs and sizes.",
-    "image": "/products/regalia-7.jpg"
+    "image": "/products/regalia-8.jpg"
   },
   {
     "id": 19,
@@ -263,7 +263,7 @@ const products = [
     "color": "Gold",
     "inStock": true,
     "description": "Bold statement bangle bracelet with modern artistic design.",
-    "image": "/products/regalia-8.jpg"
+    "image": "/products/regalia-9.jpg"
   },
   {
     "id": 20,
@@ -277,7 +277,7 @@ const products = [
     "color": "Gold",
     "inStock": true,
     "description": "Traditional bridal armlet set with intricate stone work and traditional patterns.",
-    "image": "/products/regalia-9.jpg"
+    "image": "/products/regalia-10.jpg"
   },
   {
     "id": 141,
@@ -404,29 +404,69 @@ const products = [
     "inStock": true,
     "description": "Drape yourself in supreme luxury with this breathtaking Deep Purple / Wine Velvet Saree. Crafted from ultra-soft, rich velvet fabric and beautifully enhanced with all-over delicate stonework/bootis, it features an exquisite, heavy scalloped border intricately detailed with shimmering embellishments.",
     "image": "/products/saree-wine-velvet.jpg"
+  },
+  {
+    "id": 153,
+    "name": "German Silver Tribal Statement Choker Set",
+    "category": "German Silver",
+    "price": 1499,
+    "originalPrice": 2499,
+    "discount": 40,
+    "rating": 4.7,
+    "material": "German Silver",
+    "color": "Antique Silver",
+    "inStock": true,
+    "description": "Premium handcrafted German Silver choker with delicate hanging ghungroos and matching statement jhumka earrings. Bohemian tribal vintage elegance.",
+    "image": "/products/regalia-9.jpg"
+  },
+  {
+    "id": 154,
+    "name": "German Silver Dual-Tone Peacock Jhumkas",
+    "category": "German Silver",
+    "price": 899,
+    "originalPrice": 1599,
+    "discount": 43,
+    "rating": 4.6,
+    "material": "German Silver",
+    "color": "Oxidised Silver",
+    "inStock": true,
+    "description": "Artisanal German Silver peacock jhumka earrings adorned with micro-carved bells and an antique oxidised matte finish.",
+    "image": "/products/earrings-green-jhumka.jpg"
+  },
+  {
+    "id": 155,
+    "name": "German Silver Handcrafted Layered Temple Mala",
+    "category": "German Silver",
+    "price": 1899,
+    "originalPrice": 2999,
+    "discount": 36,
+    "rating": 4.8,
+    "material": "German Silver",
+    "color": "Silver",
+    "inStock": true,
+    "description": "Exquisite multi-strand German Silver necklace with temple coin accents and an intricately sculpted goddess Lakshmi centerpiece.",
+    "image": "/products/fashion-jewels-1.jpg"
   }
 ];
 
 const { getPool } = require('../config/db');
 
 async function seedProducts() {
-  // The catalogue evolves over time.  Only seeding an empty table meant that
-  // products added in a later release never appeared in an existing database.
-  // INSERT IGNORE keeps any admin edits (and manually created products) intact
-  // while adding only seed products whose ids are not already present.
-  const sql = `INSERT IGNORE INTO products
-    (id, name, category, price, original_price, discount, rating, material, color, in_stock, description, image)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const [countRows] = await getPool().query('SELECT COUNT(*) AS count FROM products');
+  if (Number(countRows[0].count) > 0) return false;
 
-  let inserted = 0;
+  const sql = `INSERT INTO products
+    (id, name, category, price, original_price, discount, rating, material, color, in_stock, description, image, images)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
   for (const p of products) {
-    const [result] = await getPool().query(sql, [
+    const imagesVal = p.images ? JSON.stringify(p.images) : JSON.stringify([p.image]);
+    await getPool().query(sql, [
       p.id, p.name, p.category, p.price, p.originalPrice, p.discount, p.rating,
-      p.material, p.color, p.inStock ? 1 : 0, p.description, p.image,
+      p.material, p.color, p.inStock ? 1 : 0, p.description, p.image, imagesVal,
     ]);
-    inserted += result.affectedRows;
   }
-  return inserted > 0;
+  return true;
 }
 
 module.exports = { seedProducts };

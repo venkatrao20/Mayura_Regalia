@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from '../services/adminApi';
 import { formatCurrency, formatDate, StatusPill } from '../utils';
-import { DonutChart, StockTrendChart, GaugeChart, MultiLineChart, PieChart } from '../components/Charts';
+import { DonutChart, StockTrendChart, GaugeChart, MultiLineChart, PieChart, DailyRevenueChart } from '../components/Charts';
+import AdminIcon from '../components/AdminIcon';
 
 const monthLabel = (ym) => {
   const [y, m] = ym.split('-');
@@ -12,6 +13,10 @@ const monthLabel = (ym) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
+  const [expandedChart, setExpandedChart] = useState(null);
+  const [expandedDays, setExpandedDays] = useState(30);
+  const [expandedReport, setExpandedReport] = useState(null);
+  const [expandedLoading, setExpandedLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -27,39 +32,59 @@ const Dashboard = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    if (!expandedChart) return;
+    setExpandedLoading(true);
+    dashboardApi.reports(expandedDays)
+      .then(setExpandedReport)
+      .catch((err) => setError(err.message))
+      .finally(() => setExpandedLoading(false));
+  }, [expandedChart, expandedDays]);
+
   if (loading) return <div className="admin-loading">Loading dashboard...</div>;
   if (error) return <div className="admin-error">{error}</div>;
   if (!summary) return null;
 
-  const maxTrend = Math.max(1, ...summary.revenueTrend.map((r) => r.revenue));
   const completionPct = summary.totalOrders ? (summary.deliveredOrders / summary.totalOrders) * 100 : 0;
   const cancelPct = summary.totalOrders ? (summary.cancelledOrders / summary.totalOrders) * 100 : 0;
   const monthlyStats = (summary.monthlyRevenue || []).map((m) => ({ ...m, label: monthLabel(m.month) }));
-
+  const openChart = (chart) => {
+    setExpandedChart(chart);
+    setExpandedDays(30);
+    setExpandedReport(null);
+  };
+  const expandedData = expandedReport ? expandedReport.salesByDay.map((d) => ({
+    ...d,
+    label: new Date(`${d.date}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+  })) : [];
+  const expandedCategoryData = expandedReport ? expandedReport.salesByCategory.map((c) => ({
+    category: c.category,
+    revenue: c.revenue,
+  })) : [];
   return (
-    <section>
+    <section className="dashboard-page">
       {/* Total Sales / Total Orders / Order Complete / Cancel Order */}
       <div className="hero-stats">
         <div className="hero-card">
-          <span className="stat-icon gold">⛁</span>
+          <span className="stat-icon gold"><AdminIcon name="sales" /></span>
           <span className="hero-label">Total Sales</span>
           <strong>{formatCurrency(summary.totalRevenue)}</strong>
           <span className="hero-change up">▲ All-time revenue</span>
         </div>
         <div className="hero-card">
-          <span className="stat-icon teal">▤</span>
+          <span className="stat-icon teal"><AdminIcon name="orders" /></span>
           <span className="hero-label">Total Orders</span>
           <strong>{summary.totalOrders}</strong>
           <span className="hero-change up">{summary.pendingOrders}<small>pending</small></span>
         </div>
         <div className="hero-card">
-          <span className="stat-icon green">✓</span>
+          <span className="stat-icon green"><AdminIcon name="complete" /></span>
           <span className="hero-label">Order Complete</span>
           <strong>{summary.deliveredOrders}</strong>
           <span className="hero-change up">▲ {completionPct.toFixed(1)}%<small>vs total</small></span>
         </div>
         <div className="hero-card">
-          <span className="stat-icon red">✕</span>
+          <span className="stat-icon red"><AdminIcon name="cancel" /></span>
           <span className="hero-label">Cancel Order</span>
           <strong>{summary.cancelledOrders}</strong>
           <span className="hero-change down">▲ {cancelPct.toFixed(1)}%<small>vs total</small></span>
@@ -82,46 +107,43 @@ const Dashboard = () => {
         </div>
         <div className="admin-panel-card">
           <div className="panel-heading"><div><span>LAST 6 MONTHS</span><h2>Statistic</h2></div></div>
-          <MultiLineChart data={monthlyStats} />
+          <div className="expandable-chart" role="button" tabIndex={0} onClick={() => openChart('statistic')} onKeyDown={(e) => e.key === 'Enter' && openChart('statistic')}>
+            <MultiLineChart data={monthlyStats} />
+          </div>
         </div>
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card"><span className="stat-icon purple">♙</span><span>Customers</span><strong>{summary.totalCustomers}</strong><em>Registered buyers</em></div>
-        <div className="stat-card"><span className="stat-icon gold">◇</span><span>Products</span><strong>{summary.totalProducts}</strong><em>{summary.outOfStock} out of stock</em></div>
-        <div className="stat-card"><span className="stat-icon red">⚠</span><span>Low Stock</span><strong>{summary.lowStock}</strong><em>Needs restock</em></div>
-        <div className="stat-card"><span className="stat-icon gold">%</span><span>Active Coupons</span><strong>{summary.activeCoupons || 0}</strong><em>Currently running</em></div>
-        <div className="stat-card"><span className="stat-icon teal">✎</span><span>Pending Reviews</span><strong>{summary.pendingReviews || 0}</strong><em>Awaiting moderation</em></div>
-        <div className="stat-card"><span className="stat-icon green">★</span><span>Avg Rating</span><strong>{Number(summary.avgRating).toFixed(1)}</strong><em>Across catalogue</em></div>
+        <div className="stat-card"><span className="stat-icon purple"><AdminIcon name="customers" /></span><span>Customers</span><strong>{summary.totalCustomers}</strong><em>Registered buyers</em></div>
+        <div className="stat-card"><span className="stat-icon gold"><AdminIcon name="product" /></span><span>Products</span><strong>{summary.totalProducts}</strong><em>{summary.outOfStock} out of stock</em></div>
+        <div className="stat-card"><span className="stat-icon red"><AdminIcon name="warning" /></span><span>Low Stock</span><strong>{summary.lowStock}</strong><em>Needs restock</em></div>
+        <div className="stat-card"><span className="stat-icon gold"><AdminIcon name="offers" /></span><span>Active Coupons</span><strong>{summary.activeCoupons || 0}</strong><em>Currently running</em></div>
+        <div className="stat-card"><span className="stat-icon teal"><AdminIcon name="reviews" /></span><span>Pending Reviews</span><strong>{summary.pendingReviews || 0}</strong><em>Awaiting moderation</em></div>
+        <div className="stat-card"><span className="stat-icon green"><AdminIcon name="rating" /></span><span>Avg Rating</span><strong>{Number(summary.avgRating).toFixed(1)}</strong><em>Across catalogue</em></div>
       </div>
 
       <div className="dashboard-grid">
         <div className="admin-panel-card chart-card">
-          <div className="panel-heading"><div><span>LAST 7 DAYS</span><h2>Revenue trend</h2></div><button onClick={() => navigate('/admin/reports')}>Full report →</button></div>
-          {summary.revenueTrend.length ? (
-            <div className="activity-bars">
-              {summary.revenueTrend.map((row) => (
-                <div key={row.date} className="activity-col">
-                  <div style={{ height: `${Math.max((row.revenue / maxTrend) * 100, 6)}%` }} title={formatCurrency(row.revenue)} />
-                  <small>{formatDate(row.date)}</small>
-                </div>
-              ))}
-            </div>
-          ) : <div className="empty-table">No orders yet.</div>}
+          <div className="panel-heading"><div><span>LAST 30 DAYS</span><h2>Revenue by day</h2></div></div>
+          <div className="expandable-chart" role="button" tabIndex={0} onClick={() => openChart('revenue')} onKeyDown={(e) => e.key === 'Enter' && openChart('revenue')}>
+            {summary.revenueTrend.length ? <DailyRevenueChart data={summary.revenueTrend} /> : <div className="empty-table">No orders yet.</div>}
+          </div>
         </div>
         <div className="admin-panel-card quick-card">
           <div className="panel-heading"><div><span>QUICK ACTIONS</span><h2>Store controls</h2></div></div>
-          <button onClick={() => navigate('/admin/products')}>＋ Add New Product</button>
-          <button onClick={() => navigate('/admin/orders')}>▤ Manage Orders</button>
-          <button onClick={() => navigate('/admin/offers')}>% Create Offer</button>
-          <button onClick={() => navigate('/admin/inventory')}>▥ Check Inventory</button>
+          <button onClick={() => navigate('/admin/products')}><AdminIcon name="product" size={16} /> Add New Product</button>
+          <button onClick={() => navigate('/admin/orders')}><AdminIcon name="orders" size={16} /> Manage Orders</button>
+          <button onClick={() => navigate('/admin/offers')}><AdminIcon name="offers" size={16} /> Create Offer</button>
+          <button onClick={() => navigate('/admin/inventory')}><AdminIcon name="inventory" size={16} /> Check Inventory</button>
         </div>
       </div>
 
       <div className="dashboard-grid dashboard-grid-charts dashboard-grid-charts-3">
         <div className="admin-panel-card table-card">
           <div className="panel-heading"><div><span>CATEGORY SPLIT</span><h2>Sales by category</h2></div></div>
-          <DonutChart data={summary.categoryBreakdown || []} />
+          <div className="expandable-chart" role="button" tabIndex={0} onClick={() => openChart('category')} onKeyDown={(e) => e.key === 'Enter' && openChart('category')}>
+            <DonutChart data={summary.categoryBreakdown || []} />
+          </div>
         </div>
         <div className="admin-panel-card table-card">
           <div className="panel-heading"><div><span>ORDER MIX</span><h2>Orders by status</h2></div></div>
@@ -136,7 +158,9 @@ const Dashboard = () => {
         </div>
         <div className="admin-panel-card table-card">
           <div className="panel-heading"><div><span>LAST 6 MONTHS</span><h2>Monthly revenue</h2></div></div>
-          <StockTrendChart data={(summary.monthlyRevenue || []).map((m) => ({ ...m, label: monthLabel(m.month) }))} />
+          <div className="expandable-chart" role="button" tabIndex={0} onClick={() => openChart('monthly')} onKeyDown={(e) => e.key === 'Enter' && openChart('monthly')}>
+            <StockTrendChart data={(summary.monthlyRevenue || []).map((m) => ({ ...m, label: monthLabel(m.month) }))} />
+          </div>
         </div>
       </div>
 
@@ -174,6 +198,33 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      {expandedChart && (
+        <div className="chart-fullscreen-backdrop" role="dialog" aria-modal="true" aria-label="Expanded analytics chart" onClick={() => setExpandedChart(null)}>
+          <div className="chart-fullscreen" onClick={(e) => e.stopPropagation()}>
+            <div className="chart-fullscreen-heading">
+              <div>
+                <span>ANALYTICS</span>
+                <h2>{expandedChart === 'category' ? 'Sales by category' : expandedChart === 'statistic' ? 'Revenue and orders' : expandedChart === 'monthly' ? 'Revenue trend' : 'Revenue by day'}</h2>
+              </div>
+              <button type="button" className="chart-close" onClick={() => setExpandedChart(null)} aria-label="Close chart">×</button>
+            </div>
+            <div className="chart-range-picker">
+              {[7, 30, 90].map((days) => (
+                <button type="button" key={days} className={`admin-btn small ${expandedDays === days ? 'primary' : ''}`} onClick={() => setExpandedDays(days)}>Last {days} days</button>
+              ))}
+            </div>
+            {expandedLoading || !expandedReport ? <div className="admin-loading">Loading chart...</div> : (
+              <div className="chart-fullscreen-body">
+                {expandedChart === 'category'
+                  ? <DonutChart data={expandedCategoryData} size={330} thickness={42} />
+                  : expandedChart === 'statistic'
+                    ? <MultiLineChart data={expandedData} large />
+                    : <DailyRevenueChart data={expandedData} large />}
+              </div>
+            )}
           </div>
         </div>
       )}

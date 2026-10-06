@@ -2,41 +2,11 @@ const productModel = require('../models/productModel');
 
 async function getProducts(req, res) {
   try {
-    const products = await productModel.findAll({ category: req.query.category, search: req.query.search });
+    const products = await productModel.findAll({ category: req.query.category, material: req.query.material, search: req.query.search });
     res.json(products);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to load products' });
-  }
-}
-
-async function getCategories(req, res) {
-  try {
-    const products = await productModel.findAll();
-    const materialsFor = (category) => [...new Set(
-      products
-        .filter((product) => product.category.toLowerCase() === category.toLowerCase())
-        .map((product) => product.material)
-        .filter(Boolean)
-    )].sort();
-
-    res.json({
-      groups: [
-        { id: 'jewels', name: 'JEWELS', slug: 'jewels', subcategories: [] },
-        { id: 'fashion-jewels', name: 'FASHION JEWELS', slug: 'fashion-jewels', subcategories: [] },
-        { id: 'sarees', name: 'SAREES', slug: 'sarees', subcategories: [] },
-        { id: 'bags', name: 'BAGS', slug: 'bags', materials: materialsFor('Bags'), subcategories: [] },
-        { id: 'watches', name: 'WATCHES', slug: 'watches', subcategories: [] },
-        { id: 'gifts', name: 'GIFTS', slug: 'gifts', subcategories: [] },
-      ],
-      categoryCounts: products.reduce((counts, product) => {
-        counts[product.category] = (counts[product.category] || 0) + 1;
-        return counts;
-      }, {}),
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to load product categories' });
   }
 }
 
@@ -94,4 +64,4 @@ async function deleteProduct(req, res) {
   }
 }
 
-module.exports = { getProducts, getCategories, getProduct, createProduct, updateProduct, deleteProduct };
+module.exports = { getProducts, getProduct, createProduct, updateProduct, deleteProduct };

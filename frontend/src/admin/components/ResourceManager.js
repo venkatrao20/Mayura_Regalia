@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import AdminIcon from './AdminIcon';
 
 /**
  * Generic list + add/edit modal + delete admin screen, reused by Categories,
@@ -104,15 +105,15 @@ const ResourceManager = ({
   return (
     <section>
       <div className="admin-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={searchPlaceholder} /></div>
-        <button className="add-product-btn" onClick={openAdd}>＋ Add {title}</button>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={searchPlaceholder} /></div>
+        <button className="add-product-btn" onClick={openAdd}><AdminIcon name="add" size={16} /> Add {title}</button>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && !modalOpen && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
-        <div className="panel-heading"><div><span>{title.toUpperCase()}S</span><h2>{filtered.length} {subtitle || title.toLowerCase() + 's'}</h2></div></div>
+        <div className="panel-heading"><div><span>{(subtitle || `${title.toLowerCase()}s`).toUpperCase()}</span><h2>{filtered.length} {subtitle || `${title.toLowerCase()}s`}</h2></div></div>
         {loading ? (
           <div className="admin-loading">Loading...</div>
         ) : (

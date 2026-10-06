@@ -3,6 +3,62 @@ import { formatCurrency } from '../utils';
 
 const PALETTE = ['#7a1f2b', '#c9a227', '#a3811a', '#8f2733', '#591722', '#cfa46b', '#4a3f38', '#b98b56'];
 
+export const DailyRevenueChart = ({ data, large = false }) => {
+  const [hoverIdx, setHoverIdx] = React.useState(null);
+  const width = 760;
+  const height = large ? 430 : 260;
+  const pad = { top: 20, right: 24, bottom: 40, left: 76 };
+  const plotWidth = width - pad.left - pad.right;
+  const plotHeight = height - pad.top - pad.bottom;
+  const max = Math.max(1, ...data.map((d) => Number(d.revenue || 0)));
+  const step = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
+  const point = (value, index) => ({
+    x: pad.left + step * index,
+    y: pad.top + plotHeight - (Number(value || 0) / max) * plotHeight,
+  });
+  const points = data.map((d, index) => point(d.revenue, index));
+  const path = points.map((p, index) => `${index ? 'L' : 'M'} ${p.x} ${p.y}`).join(' ');
+  const labelIndexes = data.map((_, index) => index).filter((index) => index % 5 === 0 || index === data.length - 1);
+  const active = hoverIdx == null ? null : data[hoverIdx];
+
+  return (
+    <div className="daily-revenue-chart">
+      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" onMouseLeave={() => setHoverIdx(null)}>
+        {[0, 1, 2, 3, 4].map((index) => {
+          const value = max - (max / 4) * index;
+          const y = pad.top + (plotHeight / 4) * index;
+          return (
+            <g key={index}>
+              <line x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke="var(--a-border)" strokeDasharray="3 4" />
+              <text x={pad.left - 10} y={y + 4} textAnchor="end" fontSize="10" fill="var(--a-text-soft)">{formatCurrency(value)}</text>
+            </g>
+          );
+        })}
+        <path d={path || `M ${pad.left} ${pad.top + plotHeight}`} fill="none" stroke="#C9A227" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((p, index) => (
+          <circle key={data[index].date} cx={p.x} cy={p.y} r={hoverIdx === index ? 6 : 3.5} fill="#C9A227" onMouseEnter={() => setHoverIdx(index)} />
+        ))}
+        {labelIndexes.map((index) => {
+          const date = new Date(`${data[index].date}T00:00:00`);
+          const label = date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+          return <text key={data[index].date} x={points[index].x} y={height - 12} textAnchor="middle" fontSize="10" fill="var(--a-text-soft)">{label}</text>;
+        })}
+        {hoverIdx != null && <line x1={points[hoverIdx].x} x2={points[hoverIdx].x} y1={pad.top} y2={pad.top + plotHeight} stroke="var(--a-gold)" strokeDasharray="3 3" />}
+        {data.map((d, index) => (
+          <rect key={`hit-${d.date}`} x={Math.max(pad.left, points[index].x - step / 2)} y={pad.top} width={step} height={plotHeight} fill="transparent" onMouseEnter={() => setHoverIdx(index)} />
+        ))}
+      </svg>
+      {active && (
+        <div className="statistic-tooltip daily-revenue-tooltip" style={{ left: `${(points[hoverIdx].x / width) * 100}%` }}>
+          <strong>{new Date(`${active.date}T00:00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+          <span><i style={{ background: '#C9A227' }} />Revenue: {formatCurrency(active.revenue)}</span>
+          <span>Orders: {active.orders}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /**
  * Donut chart built from plain SVG circles (no chart library required).
  * Used on the Dashboard to show revenue share by category.
@@ -295,10 +351,10 @@ export const GaugeChart = ({ percent, size = 220, thickness = 20 }) => {
  * trends together (each normalised to its own scale, 0-100%, so both are
  * legible on one axis), with a hover tooltip showing the real values.
  */
-export const MultiLineChart = ({ data }) => {
+export const MultiLineChart = ({ data, large = false }) => {
   const [hoverIdx, setHoverIdx] = React.useState(null);
   const width = 640;
-  const height = 220;
+  const height = large ? 430 : 220;
   const padX = 28;
   const padY = 22;
 

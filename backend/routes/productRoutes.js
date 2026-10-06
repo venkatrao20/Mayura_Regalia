@@ -5,7 +5,6 @@ const { requireAdmin } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/', controller.getProducts);
-router.get('/categories', controller.getCategories);
 router.get('/:id', controller.getProduct);
 router.post('/', requireAdmin, controller.createProduct);
 router.put('/:id', requireAdmin, controller.updateProduct);

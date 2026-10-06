@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { inventoryApi } from '../services/adminApi';
-import { onImageError, IMAGE_PLACEHOLDER } from '../utils';
+import { onImageError } from '../utils';
+import AdminIcon from '../components/AdminIcon';
 
 const Inventory = () => {
   const [items, setItems] = useState([]);
@@ -66,7 +67,7 @@ const Inventory = () => {
       </div>
 
       <div className="admin-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product or SKU..." /></div>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by product or SKU..." /></div>
         <select className="filter-select" value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="all">All stock</option>
           <option value="low">Low stock</option>
@@ -74,7 +75,7 @@ const Inventory = () => {
         </select>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
@@ -86,7 +87,7 @@ const Inventory = () => {
               <tbody>
                 {filtered.map((item) => (
                   <tr key={item.id}>
-                    <td><div className="table-product"><img src={item.image || IMAGE_PLACEHOLDER} alt="" onError={onImageError} /><strong>{item.name}</strong></div></td>
+                    <td><div className="table-product"><img src={item.image || `/products/${String(item.category || 'regalia-5').toLowerCase().replace(/\s+/g, '-')}.jpg`} alt="" onError={onImageError} /><strong>{item.name}</strong></div></td>
                     <td>{item.sku || '—'}</td>
                     <td>{item.category}</td>
                     <td>{item.lowStockThreshold}</td>

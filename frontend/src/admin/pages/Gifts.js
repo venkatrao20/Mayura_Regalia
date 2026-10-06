@@ -1,11 +1,13 @@
 import React from 'react';
 import ResourceManager from '../components/ResourceManager';
 import { giftsApi } from '../services/adminApi';
-import { formatCurrency } from '../utils';
+import { formatCurrency, onImageError } from '../utils';
 
 const emptyForm = { name: '', description: '', price: '', image: '', status: 'active' };
+const giftImage = (row) => row.image || '/products/fashion-jewels-2.jpg';
 
 const columns = [
+  { key: 'image', label: 'IMAGE', render: (row) => <img className="resource-image-thumb" src={giftImage(row)} alt="" onError={onImageError} /> },
   { key: 'name', label: 'GIFT' },
   { key: 'price', label: 'PRICE', render: (row) => formatCurrency(row.price) },
   { key: 'status', label: 'STATUS', render: (row) => <span className={`status-pill ${row.status}`}>{row.status}</span> },

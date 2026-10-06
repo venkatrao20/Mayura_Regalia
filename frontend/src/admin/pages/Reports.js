@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { dashboardApi } from '../services/adminApi';
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency } from '../utils';
+import { DailyRevenueChart } from '../components/Charts';
 
 const RANGES = [7, 30, 90];
 
@@ -27,7 +28,6 @@ const Reports = () => {
   const totalRevenue = report ? report.salesByDay.reduce((s, r) => s + r.revenue, 0) : 0;
   const totalOrders = report ? report.salesByDay.reduce((s, r) => s + r.orders, 0) : 0;
   const maxCategoryRevenue = report && report.salesByCategory.length ? Math.max(...report.salesByCategory.map((c) => c.revenue), 1) : 1;
-  const maxDayRevenue = report && report.salesByDay.length ? Math.max(...report.salesByDay.map((d) => d.revenue), 1) : 1;
 
   return (
     <section>
@@ -52,14 +52,7 @@ const Reports = () => {
             <div className="admin-panel-card chart-card">
               <div className="panel-heading"><div><span>TREND</span><h2>Revenue by day</h2></div></div>
               {report.salesByDay.length ? (
-                <div className="activity-bars">
-                  {report.salesByDay.map((d) => (
-                    <div key={d.date} className="activity-col">
-                      <div style={{ height: `${Math.max((d.revenue / maxDayRevenue) * 100, 4)}%` }} title={formatCurrency(d.revenue)} />
-                      <small>{formatDate(d.date)}</small>
-                    </div>
-                  ))}
-                </div>
+                <DailyRevenueChart data={report.salesByDay} />
               ) : <div className="empty-table">No sales in this range.</div>}
             </div>
 

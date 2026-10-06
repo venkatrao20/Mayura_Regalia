@@ -2,24 +2,24 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: #FFF0F5;
-  border-bottom: 1px solid #F6DCE4;
+  background: #F8C8DC;
+  border-bottom: 1px solid #F3B5CC;
   box-shadow: 0 4px 20px rgba(187, 126, 143, .08);
 }
 
 .header-top {
   position: relative;
   max-width: 1480px;
-  min-height: 94px;
+  min-height: 72px;
   margin: 0 auto;
-  padding: .45rem 1.7rem;
+  padding: .35rem 1.7rem;
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
 
 .logo { display: flex; align-items: center; flex-shrink: 0; text-decoration: none; }
-.logo-img { width: 141px; height: 94px; object-fit: contain; display: block; }
+.logo-img { width: 174px; height: 116px; object-fit: contain; display: block; }
 
 .nav-menu {
   display: flex;
@@ -34,7 +34,7 @@
   position: relative;
   border: 0;
   background: transparent;
-  color: #654d55;
+  color: #111111;
   text-decoration: none;
   font-family: var(--font-body, 'Poppins', sans-serif);
   font-size: .82rem;
@@ -54,7 +54,7 @@
   right: 100%;
   bottom: .45rem;
   height: 1px;
-  background: #d98fa0;
+  background: var(--brand-dark);
   transition: right .25s ease;
 }
 .nav-link:hover, .nav-item-dropdown.open > .nav-link { color: #c8788d; }
@@ -62,7 +62,7 @@
 
 .nav-item-dropdown { position: static; }
 .dropdown-toggle { display: inline-flex; align-items: center; gap: .35rem; }
-.dropdown-caret { color: #d98fa0; font-size: .68rem; transition: transform .2s ease; }
+.dropdown-caret { color: #111111; font-size: .68rem; transition: transform .2s ease; }
 .nav-item-dropdown.open .dropdown-caret { transform: rotate(180deg); }
 
 /* The mega menu is positioned against .header-top, not the PRODUCTS label.
@@ -74,8 +74,8 @@
   width: min(1120px, calc(100vw - 48px));
   transform: translate(-50%, 10px);
   padding: 1.8rem 2rem 2rem;
-  background: #FFF0F5;
-  border: 1px solid #F0D5DE;
+  background: #FDE4EE;
+  border: 1px solid #FDE4EE;
   border-top: 2px solid #F2D5DE;
   box-shadow: 0 24px 58px rgba(161, 103, 120, .18);
   opacity: 0;
@@ -117,15 +117,41 @@
   transition: background .2s ease, color .2s ease, transform .2s ease;
 }
 .mega-top-links a:hover {
-  background: #FFF0F5;
-  color: #fff;
+  background: #FDE4EE;
+  color: var(--brand);
   transform: translateY(-1px);
 }
 
+/* Instagram float — sits ABOVE WhatsApp */
+.instagram-float {
+  position: fixed;
+  right: 22px;
+  bottom: 152px;
+  z-index: 1400;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(214, 36, 159, .3);
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.instagram-float:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(214, 36, 159, .42);
+}
+.instagram-float svg { width: 26px; height: 26px; }
+
+/* WhatsApp float — sits BELOW Instagram */
 .whatsapp-float {
   position: fixed;
   right: 22px;
-  bottom: 22px;
+  bottom: 88px;
   z-index: 1400;
   width: 52px;
   height: 52px;
@@ -172,7 +198,7 @@
   width: 100%;
   margin: 0 0 .55rem !important;
   padding-bottom: .62rem;
-  color: #c66f86 !important;
+  color: #111111 !important;
   border-bottom: 1px solid #e9c6d0;
   font-size: .72rem !important;
   font-weight: 700 !important;
@@ -209,7 +235,7 @@
   border-radius: 3px;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
-.search-bar:focus-within { border-color: #d98fa0; box-shadow: 0 0 0 3px rgba(243, 201, 211, .28); }
+.search-bar:focus-within { border-color: #F4A6C0; box-shadow: 0 0 0 3px rgba(243, 201, 211, .28); }
 .search-input {
   flex: 1;
   min-width: 0;
@@ -217,7 +243,7 @@
   border: 0;
   outline: 0;
   background: #fff;
-  color: #654d55;
+  color: #111111;
   font-family: var(--font-body, 'Poppins', sans-serif);
   font-size: .7rem;
   font-weight: 500;
@@ -228,8 +254,8 @@
   width: 44px;
   border: 0;
   border-left: 1px solid #efcfd8;
-  background: #FFF0F5;
-  color: #c66f86;
+  background: #FDE4EE;
+  color: #111111;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,7 +263,7 @@
   transition: background .2s ease, color .2s ease;
 }
 .search-btn svg { width: 19px; height: 19px; }
-.search-btn:hover { background: #FFF0F5; color: #ad536d; }
+.search-btn:hover { background: #FDE4EE; color: #ad536d; }
 
 .cart-link {
   position: relative;
@@ -249,11 +275,11 @@
   border: 1px solid #efcfd8;
   border-radius: 3px;
   background: #fff;
-  color: #c66f86;
+  color: #111111;
   text-decoration: none;
   transition: background .2s ease, transform .2s ease;
 }
-.cart-link:hover { background: #FFF0F5; transform: translateY(-1px); }
+.cart-link:hover { background: #FDE4EE; transform: translateY(-1px); }
 .cart-icon { display: flex; }
 .cart-icon svg { width: 21px; height: 21px; }
 .account-link {
@@ -266,11 +292,11 @@
   border: 1px solid #efcfd8;
   border-radius: 3px;
   background: #fff;
-  color: #c66f86;
+  color: #111111;
   text-decoration: none;
   transition: background .2s ease, transform .2s ease;
 }
-.account-link:hover { background: #FFF0F5; transform: translateY(-1px); }
+.account-link:hover { background: #FDE4EE; transform: translateY(-1px); }
 .account-link svg { width: 21px; height: 21px; flex-shrink: 0; }
 .account-link.with-name {
   width: auto;
@@ -280,7 +306,7 @@
 .account-name-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #604A52;
+  color: #111111;
   white-space: nowrap;
   max-width: 110px;
   overflow: hidden;
@@ -299,7 +325,7 @@
   right: 0;
   min-width: 170px;
   background: #fff;
-  border: 1px solid #F0D5DE;
+  border: 1px solid #FDE4EE;
   border-radius: 8px;
   box-shadow: 0 18px 40px rgba(161, 103, 120, .18);
   padding: 0.4rem;
@@ -327,7 +353,7 @@
   border-radius: 5px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #604A52;
+  color: #111111;
   text-decoration: none;
   background: none;
   border: none;
@@ -336,7 +362,7 @@
 }
 .account-dropdown-menu a:hover,
 .account-dropdown-menu .account-logout-link:hover {
-  background: #FFF0F5;
+  background: #FDE4EE;
 }
 .account-dropdown-menu .account-logout-link {
   color: #a52d22;
@@ -353,7 +379,7 @@
   height: 18px;
   padding: 0 4px;
   border-radius: 10px;
-  background: #d98fa0;
+  background: var(--brand-dark);
   color: #fff;
   display: flex;
   align-items: center;
@@ -363,7 +389,7 @@
   font-weight: 700;
 }
 
-.mobile-menu-btn { display: none; border: 0; background: transparent; color: #c66f86; font-size: 1.45rem; cursor: pointer; }
+.mobile-menu-btn { display: none; border: 0; background: transparent; color: #111111; font-size: 1.45rem; cursor: pointer; }
 
 @media (max-width: 1180px) {
   .header-top { gap: 1rem; padding-inline: 1rem; }
@@ -374,8 +400,8 @@
 }
 
 @media (max-width: 900px) {
-  .header-top { min-height: 76px; flex-wrap: wrap; }
-  .logo-img { width: 105px; height: 70px; }
+  .header-top { min-height: 64px; flex-wrap: wrap; }
+  .logo-img { width: 124px; height: 83px; }
   .header-actions { margin-left: auto; }
   .mobile-menu-btn { display: block; }
   .nav-menu {
@@ -388,8 +414,8 @@
     align-items: stretch;
     gap: 0;
     padding: .7rem 1rem 1rem;
-    background: #FFF0F5;
-    border-top: 1px solid #F6DCE4;
+    background: #FDE4EE;
+    border-top: 1px solid #FDE4EE;
     box-shadow: 0 14px 30px rgba(161, 103, 120, .12);
   }
   .nav-menu.active { display: flex; }
@@ -417,11 +443,11 @@
 }
 
 @media (max-width: 560px) {
-  .header-top { padding: .45rem .65rem; gap: .55rem; }
-  .logo-img { width: 93px; height: 62px; }
+  .header-top { padding: .35rem .65rem; gap: .55rem; }
+  .logo-img { width: 104px; height: 70px; }
   .search-bar { width: 145px; height: 40px; }
   .search-btn, .cart-link, .account-link { width: 40px; height: 40px; }
   .mega-grid { grid-template-columns: 1fr; }
   .mega-top-links { flex-direction: column; }
-  .whatsapp-float { width: 48px; height: 48px; right: 14px; bottom: 14px; }
+  .whatsapp-float { width: 48px; height: 48px; right: 14px; bottom: 74px; }
 }

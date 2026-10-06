@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { settingsApi } from '../services/adminApi';
+import HeroSlidesEditor from './HeroSlidesEditor';
 
-// Generates a random, prefixed key using the browser's crypto API — good
+// Generates a random, prefixed key using the browser's crypto API â€” good
 // enough entropy for a demo/dev-style storefront API key.
 const generateKey = (prefix) => {
   const bytes = new Uint8Array(24);
@@ -50,7 +51,10 @@ const Settings = () => {
     setMessage('');
     setError('');
     try {
-      const updated = await settingsApi.update(form);
+      const updated = await settingsApi.update({
+        ...form,
+        goldPriceUpdatedAt: new Date().toISOString(),
+      });
       setForm(updated);
       setMessage('Settings saved.');
     } catch (err) {
@@ -94,9 +98,12 @@ const Settings = () => {
 
   return (
     <section>
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success">âœ“ {message}</div>}
       {error && <div className="admin-error">{error}</div>}
 
+      <HeroSlidesEditor value={form.heroSlides} onSaved={(updated) => setForm((cur) => ({ ...cur, ...updated }))} />
+
+      {/* â”€â”€ API Keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="admin-panel-card api-keys-card">
         <div className="panel-heading"><div><span>DEVELOPER</span><h2>API Keys</h2></div></div>
         <p className="api-key-hint">
@@ -116,7 +123,7 @@ const Settings = () => {
               <span className="api-key-badge">LIVE</span>
               <code>{form.apiKeyPublic}</code>
               <button type="button" className="api-key-copy" onClick={() => copyValue(form.apiKeyPublic, 'pub')}>
-                {copiedField === 'pub' ? '✓ Copied' : 'Copy'}
+                {copiedField === 'pub' ? 'âœ“ Copied' : 'Copy'}
               </button>
             </div>
           ) : <p className="api-key-empty">No publishable key yet.</p>}
@@ -132,10 +139,10 @@ const Settings = () => {
           {form.apiKeySecret ? (
             <div className="api-key-row">
               <span className="api-key-badge secret">SECRET</span>
-              <code>{revealSecret ? form.apiKeySecret : `${form.apiKeySecret.slice(0, 7)}${'•'.repeat(24)}`}</code>
+              <code>{revealSecret ? form.apiKeySecret : `${form.apiKeySecret.slice(0, 7)}${'â€¢'.repeat(24)}`}</code>
               <button type="button" className="api-key-copy" onClick={() => setRevealSecret((v) => !v)}>{revealSecret ? 'Hide' : 'Reveal'}</button>
               <button type="button" className="api-key-copy" onClick={() => copyValue(form.apiKeySecret, 'secret')}>
-                {copiedField === 'secret' ? '✓ Copied' : 'Copy'}
+                {copiedField === 'secret' ? 'âœ“ Copied' : 'Copy'}
               </button>
             </div>
           ) : <p className="api-key-empty">No secret key yet.</p>}
@@ -154,10 +161,24 @@ const Settings = () => {
           <label>Currency<input name="currency" value={form.currency || ''} onChange={handleChange} /></label>
           <label className="full-width">Store address<input name="address" value={form.address || ''} onChange={handleChange} /></label>
 
-          <div className="settings-section-title">Shipping & tax</div>
-          <label>Shipping fee (₹)<input name="shippingFee" type="number" min="0" value={form.shippingFee || 0} onChange={handleChange} /></label>
-          <label>Free shipping above (₹)<input name="freeShippingThreshold" type="number" min="0" value={form.freeShippingThreshold || 0} onChange={handleChange} /></label>
+          <div className="settings-section-title">Shipping &amp; tax</div>
+          <label>Shipping fee (â‚¹)<input name="shippingFee" type="number" min="0" value={form.shippingFee || 0} onChange={handleChange} /></label>
+          <label>Free shipping above (â‚¹)<input name="freeShippingThreshold" type="number" min="0" value={form.freeShippingThreshold || 0} onChange={handleChange} /></label>
           <label>Tax rate (%)<input name="taxRate" type="number" min="0" value={form.taxRate || 0} onChange={handleChange} /></label>
+
+          <div className="settings-section-title">Gold pricing</div>
+          <p className="api-key-hint full-width" style={{ gridColumn: '1/-1', marginTop: '-.4rem' }}>
+            Enter the current market price per gram in your store currency. These values are available to the
+            storefront and help you keep pricing and making charges up to date.
+          </p>
+          <label>24K gold / gram<input name="goldPrice24k" type="number" min="0" step="0.01" value={form.goldPrice24k || 0} onChange={handleChange} /></label>
+          <label>22K gold / gram<input name="goldPrice22k" type="number" min="0" step="0.01" value={form.goldPrice22k || 0} onChange={handleChange} /></label>
+          <label>18K gold / gram<input name="goldPrice18k" type="number" min="0" step="0.01" value={form.goldPrice18k || 0} onChange={handleChange} /></label>
+          <label>Making charge (%)<input name="makingChargePercent" type="number" min="0" step="0.01" value={form.makingChargePercent || 0} onChange={handleChange} /></label>
+          <label>Wastage (%)<input name="wastagePercent" type="number" min="0" step="0.01" value={form.wastagePercent || 0} onChange={handleChange} /></label>
+          <p className="api-key-hint full-width" style={{ gridColumn: '1/-1' }}>
+            Last updated: {form.goldPriceUpdatedAt ? new Date(form.goldPriceUpdatedAt).toLocaleString('en-IN') : 'Not updated yet'}
+          </p>
 
           <div className="settings-section-title">Payment gateway &mdash; Razorpay</div>
           <p className="api-key-hint full-width" style={{ gridColumn: '1/-1', marginTop: '-.4rem' }}>

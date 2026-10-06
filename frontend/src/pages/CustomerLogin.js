@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import customerAuthService from '../services/customerAuthService';
 import '../styles/CustomerAuth.css';
 
 const CustomerLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || '/account';
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,7 +17,7 @@ const CustomerLogin = () => {
     document.title = 'Login | Mayura Regalia';
   }, []);
 
-  if (customerAuthService.isAuthenticated()) return <Navigate to="/account" replace />;
+  if (customerAuthService.isAuthenticated()) return <Navigate to={redirectTo} replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ const CustomerLogin = () => {
     setLoading(true);
     try {
       await customerAuthService.login(phone.trim(), password);
-      navigate('/account', { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -74,7 +76,7 @@ const CustomerLogin = () => {
         </form>
 
         <div className="customer-auth-switch">
-          New here? <Link to="/signup">Create an account</Link>
+          New here? <Link to="/signup" state={location.state}>Create an account</Link>
         </div>
       </div>
     </div>

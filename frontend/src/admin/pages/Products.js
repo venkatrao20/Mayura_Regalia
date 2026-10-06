@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { productsApi, categoriesApi } from '../services/adminApi';
-import { formatCurrency, onImageError, IMAGE_PLACEHOLDER } from '../utils';
+import { formatCurrency, onImageError } from '../utils';
+import AdminIcon from '../components/AdminIcon';
 
 const DISCOUNT_OPTIONS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 
@@ -9,10 +10,32 @@ const COLOR_OPTIONS = [
   'Platinum', 'Copper', 'Multicolour',
 ];
 
+const DEFAULT_CATEGORIES = [
+  'Silver', 'German Silver', 'Gold Jewellery', 'Necklaces', 'Earrings',
+  'Bangles', 'Rings', 'Bridal Jewellery', 'Bracelets', 'Sarees', 'Bags', 'Watches', 'Gifts',
+];
+
+const CATEGORY_IMAGE_FALLBACKS = {
+  necklaces: '/products/regalia-1.jpg',
+  earrings: '/products/earrings-green-jhumka.jpg',
+  bangles: '/products/bangles-gemstone-kada.jpg',
+  rings: '/products/regalia-3.jpg',
+  'bridal jewellery': '/products/JewelsSet.jpeg',
+  bracelets: '/products/regalia-4.jpg',
+  sarees: '/products/saree-wine-velvet.jpg',
+  bags: '/products/mayura-purse-01.jpg',
+  gifts: '/products/fashion-jewels-2.jpg',
+  silver: '/products/regalia-6.jpg',
+  'german silver': '/products/regalia-7.jpg',
+  'gold jewellery': '/products/JewelsSet.jpeg',
+};
+
+const productImage = (product) => product.image || CATEGORY_IMAGE_FALLBACKS[String(product.category || '').toLowerCase()] || '/products/regalia-5.jpg';
+
 const emptyProduct = {
   name: '', category: '', price: '', originalPrice: '', discount: 0,
   rating: 4.5, material: 'Premium Alloy', colors: ['Gold'], inStock: true,
-  description: '', image: '/products/regalia-1.jpg', sku: '', stockQuantity: 0, lowStockThreshold: 5,
+  description: '', image: '', images: [], sku: '', stockQuantity: 0, lowStockThreshold: 5,
 };
 
 function fileToDataUrl(file) {
@@ -31,6 +54,7 @@ const Products = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyProduct);
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -60,26 +84,44 @@ const Products = () => {
 
   useEffect(() => { loadProducts(); loadCategories(); }, [loadProducts, loadCategories]);
 
+  // Combine categories from backend with default categories to always provide Silver & German Silver
+  const availableCategoryNames = useMemo(() => {
+    const names = new Set(categories.map((c) => c.name));
+    DEFAULT_CATEGORIES.forEach((c) => names.add(c));
+    return Array.from(names);
+  }, [categories]);
+
   const filteredProducts = useMemo(() => {
     const term = search.toLowerCase().trim();
     if (!term) return products;
     return products.filter((p) => `${p.name} ${p.category} ${p.sku || ''}`.toLowerCase().includes(term));
   }, [products, search]);
 
-  const defaultCategory = categories[0]?.name || '';
+  const defaultCategory = availableCategoryNames[0] || 'Silver';
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ ...emptyProduct, category: defaultCategory });
+    setImageUrlInput('');
+    setForm({ ...emptyProduct, category: defaultCategory, images: [] });
     setError('');
     setModalOpen(true);
   };
 
   const openEdit = (product) => {
     setEditing(product);
+    setImageUrlInput('');
+    let imgs = [];
+    if (Array.isArray(product.images)) imgs = product.images.filter(Boolean);
+    else if (typeof product.images === 'string') {
+      try { imgs = JSON.parse(product.images); } catch { imgs = product.images ? [product.images] : []; }
+    }
+    if (!imgs.length && product.image) imgs = [product.image];
+
     setForm({
       ...emptyProduct,
       ...product,
+      image: imgs[0] || product.image || '',
+      images: imgs,
       colors: Array.isArray(product.colors) && product.colors.length
         ? product.colors
         : (product.color ? [product.color] : []),
@@ -101,15 +143,81 @@ const Products = () => {
     });
   };
 
-  const handleImageFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleMultipleImageFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     try {
-      const dataUrl = await fileToDataUrl(file);
-      setForm((current) => ({ ...current, image: dataUrl }));
+      const dataUrls = await Promise.all(files.map((file) => fileToDataUrl(file)));
+      setForm((current) => {
+        const currentList = Array.isArray(current.images) ? current.images : (current.image ? [current.image] : []);
+        const updatedImages = [...currentList, ...dataUrls];
+        return {
+          ...current,
+          images: updatedImages,
+          image: updatedImages[0] || current.image || '',
+        };
+      });
+      e.target.value = '';
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleAddImageUrl = (e) => {
+    if (e) e.preventDefault();
+    const trimmed = imageUrlInput.trim();
+    if (!trimmed) return;
+    setForm((current) => {
+      const currentList = Array.isArray(current.images) ? current.images : (current.image ? [current.image] : []);
+      const updatedImages = [...currentList, trimmed];
+      return {
+        ...current,
+        images: updatedImages,
+        image: updatedImages[0] || current.image || '',
+      };
+    });
+    setImageUrlInput('');
+  };
+
+  const handleSetPrimaryImage = (index) => {
+    setForm((current) => {
+      const list = [...(current.images || [])];
+      if (index < 0 || index >= list.length) return current;
+      const [chosen] = list.splice(index, 1);
+      const reordered = [chosen, ...list];
+      return {
+        ...current,
+        image: chosen,
+        images: reordered,
+      };
+    });
+  };
+
+  const handleRemoveImage = (index) => {
+    setForm((current) => {
+      const updated = (current.images || []).filter((_, i) => i !== index);
+      return {
+        ...current,
+        images: updated,
+        image: updated[0] || '',
+      };
+    });
+  };
+
+  const handleMoveImage = (index, direction) => {
+    setForm((current) => {
+      const list = [...(current.images || [])];
+      const target = index + direction;
+      if (target < 0 || target >= list.length) return current;
+      const temp = list[index];
+      list[index] = list[target];
+      list[target] = temp;
+      return {
+        ...current,
+        image: list[0] || '',
+        images: list,
+      };
+    });
   };
 
   const saveProduct = async (e) => {
@@ -121,11 +229,19 @@ const Products = () => {
       if (!form.colors.length) {
         throw new Error('Pick at least one available colour');
       }
+      const imgs = Array.isArray(form.images) ? form.images.filter(Boolean) : [];
+      const primary = imgs[0] || form.image || '';
+      const payload = {
+        ...form,
+        image: primary,
+        images: imgs.length ? imgs : (primary ? [primary] : []),
+      };
+
       if (editing) {
-        await productsApi.update(editing.id, form);
+        await productsApi.update(editing.id, payload);
         setMessage('Product updated in MySQL.');
       } else {
-        await productsApi.create(form);
+        await productsApi.create(payload);
         setMessage('Product added to MySQL.');
       }
       setModalOpen(false);
@@ -151,11 +267,11 @@ const Products = () => {
   return (
     <section>
       <div className="product-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products or SKU..." /></div>
-        <button className="add-product-btn" onClick={openAdd}>＋ Add Product</button>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products or SKU..." /></div>
+        <button className="add-product-btn" onClick={openAdd}><AdminIcon name="add" size={16} /> Add Product</button>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && !modalOpen && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
@@ -174,12 +290,9 @@ const Products = () => {
                 <label>Category
                   <select name="category" value={form.category} onChange={handleChange} required>
                     <option value="" disabled>Select a category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
+                    {availableCategoryNames.map((catName) => (
+                      <option key={catName} value={catName}>{catName}</option>
                     ))}
-                    {!categories.length && form.category && (
-                      <option value={form.category}>{form.category}</option>
-                    )}
                   </select>
                 </label>
 
@@ -215,17 +328,88 @@ const Products = () => {
                   </div>
                 </label>
 
-                <label className="full-width">Product image
-                  <input type="file" accept="image/*" onChange={handleImageFile} />
-                </label>
-                {form.image && (
-                  <div className="full-width image-preview">
-                    <img src={form.image} alt="Product preview" onError={onImageError} />
+                <div className="full-width product-images-manager">
+                  <label className="images-section-title">
+                    Product Images ({form.images?.length || (form.image ? 1 : 0)} uploaded)
+                    <span className="images-subnote">Upload multiple images. The first image is the catalogue cover.</span>
+                  </label>
+
+                  <div className="image-upload-row">
+                    <label className="file-input-label">
+                      <span>📁 Select Multiple Images</span>
+                      <input type="file" accept="image/*" multiple onChange={handleMultipleImageFiles} />
+                    </label>
                   </div>
-                )}
-                <label className="full-width">Or paste an image path / URL
-                  <input name="image" value={form.image || ''} onChange={handleChange} placeholder="/products/regalia-1.jpg" />
-                </label>
+
+                  <div className="image-add-url-row">
+                    <input
+                      type="text"
+                      value={imageUrlInput}
+                      onChange={(e) => setImageUrlInput(e.target.value)}
+                      placeholder="Or paste an image URL/path (e.g. /products/regalia-1.jpg)"
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddImageUrl(); } }}
+                    />
+                    <button type="button" onClick={handleAddImageUrl}>+ Add URL</button>
+                  </div>
+
+                  {Array.isArray(form.images) && form.images.length > 0 ? (
+                    <div className="product-images-gallery">
+                      {form.images.map((imgUrl, idx) => (
+                        <div key={idx} className={`image-thumb-card ${idx === 0 ? 'is-primary' : ''}`}>
+                          <img src={imgUrl} alt={`Product thumbnail ${idx + 1}`} onError={onImageError} />
+                          {idx === 0 && <span className="image-thumb-badge">PRIMARY</span>}
+                          <div className="image-thumb-actions">
+                            {idx > 0 && (
+                              <button
+                                type="button"
+                                className="thumb-btn"
+                                title="Move left"
+                                onClick={() => handleMoveImage(idx, -1)}
+                              >
+                                ◀
+                              </button>
+                            )}
+                            {idx !== 0 && (
+                              <button
+                                type="button"
+                                className="thumb-btn star"
+                                title="Set as primary image"
+                                onClick={() => handleSetPrimaryImage(idx)}
+                              >
+                                <AdminIcon name="rating" size={13} />
+                              </button>
+                            )}
+                            {idx < form.images.length - 1 && (
+                              <button
+                                type="button"
+                                className="thumb-btn"
+                                title="Move right"
+                                onClick={() => handleMoveImage(idx, 1)}
+                              >
+                                ▶
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="thumb-btn delete"
+                              title="Remove image"
+                              onClick={() => handleRemoveImage(idx)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : form.image ? (
+                    <div className="product-images-gallery">
+                      <div className="image-thumb-card is-primary">
+                        <img src={form.image} alt="Product preview" onError={onImageError} />
+                        <span className="image-thumb-badge">PRIMARY</span>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
 
                 <label className="full-width">Description<textarea name="description" rows="4" value={form.description || ''} onChange={handleChange} /></label>
               </div>
@@ -247,11 +431,11 @@ const ProductTable = ({ products, onEdit, onDelete }) => (
       <tbody>
         {products.map((p) => (
           <tr key={p.id}>
-            <td><div className="table-product"><img src={p.image || IMAGE_PLACEHOLDER} alt="" onError={onImageError} /><div><strong>{p.name}</strong><small>{p.sku || `#${String(p.id).padStart(4, '0')}`}</small></div></div></td>
+            <td><div className="table-product"><img src={productImage(p)} alt="" onError={onImageError} /><div><strong>{p.name}</strong><small>{p.sku || `#${String(p.id).padStart(4, '0')}`}</small></div></div></td>
             <td>{p.category}</td><td>{formatCurrency(p.price)}</td>
             <td>{p.stockQuantity ?? 0}</td>
             <td><span className={`stock-pill ${p.inStock ? 'in' : 'out'}`}>{p.inStock ? 'Active' : 'Out of stock'}</span></td>
-            <td>★ {Number(p.rating).toFixed(1)}</td>
+            <td><AdminIcon name="rating" size={14} /> {Number(p.rating).toFixed(1)}</td>
             <td><button className="table-action edit" onClick={() => onEdit(p)}>Edit</button><button className="table-action delete" onClick={() => onDelete(p)}>Delete</button></td>
           </tr>
         ))}

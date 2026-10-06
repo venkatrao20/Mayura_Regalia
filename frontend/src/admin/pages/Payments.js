@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { paymentsApi } from '../services/adminApi';
 import { formatCurrency, formatDate } from '../utils';
+import AdminIcon from '../components/AdminIcon';
 
 const STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 
@@ -10,7 +11,7 @@ const STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 const ProofThumb = ({ src }) => {
   const [failed, setFailed] = useState(false);
   if (!src) return '—';
-  if (failed) return <span className="proof-broken" title="Image failed to load">⚠ broken</span>;
+  if (failed) return <span className="proof-broken" title="Image failed to load"><AdminIcon name="warning" size={14} /> broken</span>;
   return (
     <a href={src} target="_blank" rel="noreferrer">
       <img src={src} alt="Payment proof" className="payment-proof-thumb" onError={() => setFailed(true)} />
@@ -75,14 +76,14 @@ const Payments = () => {
       </div>
 
       <div className="admin-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order # or customer..." /></div>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order # or customer..." /></div>
         <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>)}
         </select>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
@@ -113,14 +114,14 @@ const Payments = () => {
                           title="Approve payment"
                           disabled={updatingId === p.id || p.status === 'paid'}
                           onClick={() => updateStatus(p, 'paid')}
-                        >✓</button>
+                        ><AdminIcon name="success" size={15} /></button>
                         <button
                           type="button"
                           className="icon-btn reject"
                           title="Reject payment"
                           disabled={updatingId === p.id || p.status === 'failed'}
                           onClick={() => updateStatus(p, 'failed')}
-                        >×</button>
+                        ><AdminIcon name="cancel" size={15} /></button>
                       </div>
                     </td>
                     <td>{formatDate(p.createdAt)}</td>

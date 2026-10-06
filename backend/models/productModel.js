@@ -3,27 +3,38 @@ const { getPool } = require('../config/db');
 const selectFields = `
   id, name, category, price, original_price AS originalPrice,
   discount, rating, material, color, colors, in_stock AS inStock,
-  description, image, sku, stock_quantity AS stockQuantity, low_stock_threshold AS lowStockThreshold,
+  description, image, images, sku, stock_quantity AS stockQuantity, low_stock_threshold AS lowStockThreshold,
   created_at AS createdAt, updated_at AS updatedAt
 `;
 
-async function findAll({ category, search } = {}) {
+// Some category labels in the nav are "umbrella" headings that aggregate
+// several real product categories together (e.g. clicking "Fashion
+// Jewellery" or "Silver Jewellery" shows everything underneath it, not a
+// literal category called that).
+const CATEGORY_GROUPS = {
+  'fashion jewels': ['necklaces', 'earrings', 'bangles', 'rings', 'bridal jewellery', 'bracelets'],
+  'silver jewellery': ['silver', 'german silver'],
+};
+
+async function findAll({ category, material, search } = {}) {
   let sql = `SELECT ${selectFields} FROM products`;
   const params = [];
   const conditions = [];
 
   if (category && category !== 'all') {
-    // "Jewels" and "Fashion Jewels" are storefront menu groups, not
-    // database categories. Expand them to their actual catalogue categories
-    // so those menu links do not produce an empty product grid.
-    const fashionJewellery = ['Necklaces', 'Earrings', 'Bangles', 'Rings', 'Bridal Jewellery', 'Bracelets'];
-    if (['jewels', 'fashion jewels'].includes(String(category).toLowerCase())) {
-      conditions.push(`LOWER(category) IN (${fashionJewellery.map(() => 'LOWER(?)').join(', ')})`);
-      params.push(...fashionJewellery);
+    const group = CATEGORY_GROUPS[category.toLowerCase().trim()];
+    if (group) {
+      conditions.push(`LOWER(category) IN (${group.map(() => '?').join(', ')})`);
+      params.push(...group);
     } else {
       conditions.push('LOWER(category) = LOWER(?)');
       params.push(category);
     }
+  }
+
+  if (material) {
+    conditions.push('LOWER(material) = LOWER(?)');
+    params.push(material);
   }
 
   if (search) {
@@ -50,9 +61,9 @@ async function findById(id) {
 async function create(product) {
   const [result] = await getPool().query(
     `INSERT INTO products
-      (name, category, price, original_price, discount, rating, material, color, colors, in_stock, description, image,
+      (name, category, price, original_price, discount, rating, material, color, colors, in_stock, description, image, images,
        sku, stock_quantity, low_stock_threshold)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     values(product)
   );
   return findById(result.insertId);
@@ -62,7 +73,7 @@ async function update(id, product) {
   const [result] = await getPool().query(
     `UPDATE products SET
       name=?, category=?, price=?, original_price=?, discount=?, rating=?, material=?, color=?, colors=?,
-      in_stock=?, description=?, image=?, sku=?, stock_quantity=?, low_stock_threshold=?
+      in_stock=?, description=?, image=?, images=?, sku=?, stock_quantity=?, low_stock_threshold=?
      WHERE id=?`,
     [...values(product), id]
   );
@@ -92,6 +103,25 @@ function values(product) {
     ? product.colors.filter(Boolean)
     : (product.color ? [product.color] : []);
 
+  // Support multiple images per product.
+  // Normalize into an array of non-empty strings.
+  let imageList = [];
+  if (Array.isArray(product.images)) {
+    imageList = product.images.filter(Boolean);
+  } else if (typeof product.images === 'string' && product.images.trim()) {
+    try {
+      const parsed = JSON.parse(product.images);
+      if (Array.isArray(parsed)) imageList = parsed.filter(Boolean);
+      else imageList = [product.images.trim()];
+    } catch {
+      imageList = [product.images.trim()];
+    }
+  }
+  if (!imageList.length && product.image) {
+    imageList = [product.image];
+  }
+  const primaryImage = imageList[0] || product.image || null;
+
   return [
     product.name,
     product.category,
@@ -104,7 +134,8 @@ function values(product) {
     colorList.length ? JSON.stringify(colorList) : null,
     product.inStock ? 1 : 0,
     product.description || null,
-    product.image || null,
+    primaryImage,
+    imageList.length ? JSON.stringify(imageList) : null,
     product.sku || null,
     Number(product.stockQuantity || 0),
     Number(product.lowStockThreshold || 5),
@@ -118,6 +149,15 @@ function normalizeProduct(row) {
   }
   if (!Array.isArray(colors)) colors = colors ? [colors] : (row.color ? [row.color] : []);
 
+  let images = row.images;
+  if (typeof images === 'string') {
+    try { images = JSON.parse(images); } catch { images = images ? [images] : []; }
+  }
+  if (!Array.isArray(images) || images.length === 0) {
+    images = row.image ? [row.image] : [];
+  }
+  const primaryImage = images[0] || row.image || null;
+
   return {
     ...row,
     id: Number(row.id),
@@ -127,6 +167,8 @@ function normalizeProduct(row) {
     rating: Number(row.rating),
     inStock: Boolean(row.inStock),
     colors,
+    image: primaryImage,
+    images,
   };
 }
 

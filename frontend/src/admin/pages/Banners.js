@@ -6,7 +6,7 @@ import { onImageError } from '../utils';
 const emptyForm = { title: '', subtitle: '', image: '', link: '', position: 'home_hero', status: 'active', sortOrder: 0 };
 
 const columns = [
-  { key: 'image', label: 'PREVIEW', render: (row) => row.image ? <img className="image-thumb" src={row.image} alt="" onError={onImageError} /> : '—' },
+  { key: 'image', label: 'PREVIEW', render: (row) => <img className="banner-image-thumb" src={row.image || '/CoverImage1-wide.jpg'} alt="" onError={onImageError} /> },
   { key: 'title', label: 'TITLE' },
   { key: 'position', label: 'POSITION' },
   { key: 'status', label: 'STATUS', render: (row) => <span className={`status-pill ${row.status}`}>{row.status}</span> },

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { reviewsApi } from '../services/adminApi';
 import { formatDate } from '../utils';
+import AdminIcon from '../components/AdminIcon';
 
 const Reviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -68,7 +69,7 @@ const Reviews = () => {
       </div>
 
       <div className="admin-toolbar">
-        <div className="admin-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search reviews..." /></div>
+        <div className="admin-search"><AdminIcon name="search" size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search reviews..." /></div>
         <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">All statuses</option>
           <option value="pending">Pending</option>
@@ -77,7 +78,7 @@ const Reviews = () => {
         </select>
       </div>
 
-      {message && <div className="admin-success">✓ {message}</div>}
+      {message && <div className="admin-success"><AdminIcon name="success" size={16} /> {message}</div>}
       {error && <div className="admin-error">{error}</div>}
 
       <div className="admin-panel-card table-card">
@@ -91,7 +92,7 @@ const Reviews = () => {
                   <tr key={r.id}>
                     <td>{r.productName || '—'}</td>
                     <td>{r.customerName}</td>
-                    <td>★ {Number(r.rating).toFixed(1)}</td>
+                    <td><AdminIcon name="rating" size={14} /> {Number(r.rating).toFixed(1)}</td>
                     <td style={{ whiteSpace: 'normal', maxWidth: 260 }}>{r.comment}</td>
                     <td><span className={`status-pill ${r.status}`}>{r.status}</span></td>
                     <td>{formatDate(r.createdAt)}</td>

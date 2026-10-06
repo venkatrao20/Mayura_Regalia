@@ -8,7 +8,9 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('admin@mayuraregalia.com');
   const [password, setPassword] = useState('Admin@123');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(
+    new URLSearchParams(window.location.search).get('expired') ? 'Your session expired. Please log in again.' : ''
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

@@ -965,6 +965,96 @@ export const products = [
     description: "Drape yourself in supreme luxury with this breathtaking Deep Purple / Wine Velvet Saree. Crafted from ultra-soft, rich velvet fabric and beautifully enhanced with all-over delicate stonework/bootis, it features an exquisite, heavy scalloped border intricately detailed with shimmering embellishments.",
     image: "/products/saree-wine-velvet.jpg",
   },
+  {
+    id: 150,
+    name: "Pure 925 Sterling Silver Floral Anklets (Pair)",
+    category: "Silver",
+    price: 3499,
+    originalPrice: 4999,
+    discount: 30,
+    rating: 4.9,
+    material: "925 Sterling Silver",
+    color: "Silver",
+    inStock: true,
+    description: "Handcrafted 925 Sterling Silver traditional floral payal anklet pair with delicate chime bells and high-polish finish. Hallmarked silver guaranteed.",
+    image: "/products/regalia-7.jpg",
+    images: ["/products/regalia-7.jpg", "/products/regalia-3.jpg"],
+  },
+  {
+    id: 151,
+    name: "Traditional Oxidised Silver Temple Hasli Necklace",
+    category: "Silver",
+    price: 4999,
+    originalPrice: 6999,
+    discount: 28,
+    rating: 4.8,
+    material: "925 Sterling Silver",
+    color: "Oxidised Silver",
+    inStock: true,
+    description: "Stunning solid 925 oxidised silver hasli collar necklace featuring intricately carved peacock motifs and temple engraving.",
+    image: "/products/regalia-1.jpg",
+    images: ["/products/regalia-1.jpg", "/products/regalia-5.jpg"],
+  },
+  {
+    id: 152,
+    name: "Solid Silver Floral Embossed Kada Bangle",
+    category: "Silver",
+    price: 2899,
+    originalPrice: 3999,
+    discount: 27,
+    rating: 4.7,
+    material: "Pure Silver",
+    color: "Silver",
+    inStock: true,
+    description: "Heavy pure silver kada bangle with detailed filigree floral engraving and secure screw clasp mechanism.",
+    image: "/products/bangles-set-of-4.jpg",
+    images: ["/products/bangles-set-of-4.jpg", "/products/bangles-gemstone-kada.jpg"],
+  },
+  {
+    id: 153,
+    name: "German Silver Tribal Statement Choker Set",
+    category: "German Silver",
+    price: 1499,
+    originalPrice: 2499,
+    discount: 40,
+    rating: 4.7,
+    material: "German Silver",
+    color: "Antique Silver",
+    inStock: true,
+    description: "Premium handcrafted German Silver choker with delicate hanging ghungroos and matching statement jhumka earrings. Bohemian tribal vintage elegance.",
+    image: "/products/regalia-9.jpg",
+    images: ["/products/regalia-9.jpg", "/products/regalia-11.jpg"],
+  },
+  {
+    id: 154,
+    name: "German Silver Dual-Tone Peacock Jhumkas",
+    category: "German Silver",
+    price: 899,
+    originalPrice: 1599,
+    discount: 43,
+    rating: 4.6,
+    material: "German Silver",
+    color: "Oxidised Silver",
+    inStock: true,
+    description: "Artisanal German Silver peacock jhumka earrings adorned with micro-carved bells and an antique oxidised matte finish.",
+    image: "/products/earrings-green-jhumka.jpg",
+    images: ["/products/earrings-green-jhumka.jpg", "/products/earrings-red-jhumka.jpg"],
+  },
+  {
+    id: 155,
+    name: "German Silver Handcrafted Layered Temple Mala",
+    category: "German Silver",
+    price: 1899,
+    originalPrice: 2999,
+    discount: 36,
+    rating: 4.8,
+    material: "German Silver",
+    color: "Silver",
+    inStock: true,
+    description: "Exquisite multi-strand German Silver necklace with temple coin accents and an intricately sculpted goddess Lakshmi centerpiece.",
+    image: "/products/fashion-jewels-1.jpg",
+    images: ["/products/fashion-jewels-1.jpg", "/products/fashion-jewels-2.jpg"],
+  },
 ];
 
 export const getProductById = (id) => {
@@ -975,7 +1065,14 @@ export const getProductsByCategory = (category) => {
   if (category === 'all' || !category) {
     return products;
   }
-  return products.filter((p) => p.category.toLowerCase() === category.toLowerCase());
+  const catLower = category.toLowerCase().trim();
+  if (catLower === 'silver jewellery') {
+    return products.filter((p) => ['silver', 'german silver'].includes((p.category || '').toLowerCase().trim()));
+  }
+  if (catLower === 'fashion jewels') {
+    return products.filter((p) => ['necklaces', 'earrings', 'bangles', 'rings', 'bridal jewellery', 'bracelets'].includes((p.category || '').toLowerCase().trim()));
+  }
+  return products.filter((p) => (p.category || '').toLowerCase().trim() === catLower);
 };
 
 export const searchProducts = (query) => {

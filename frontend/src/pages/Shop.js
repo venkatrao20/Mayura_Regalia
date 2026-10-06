@@ -69,8 +69,16 @@ const Shop = () => {
       sorted = sorted.filter((p) => {
         if (!p.category) return false;
         const pCat = p.category.toLowerCase().trim();
-        if (catLower === 'jewels' || catLower === 'fashion jewels') {
+        if (catLower === 'jewels') {
+          return (
+            pCat === 'jewels'
+          );
+        }
+        if (catLower === 'fashion jewels') {
           return ['necklaces', 'earrings', 'bangles', 'rings', 'bridal jewellery', 'bracelets'].includes(pCat);
+        }
+        if (catLower === 'silver jewellery') {
+          return ['silver', 'german silver'].includes(pCat);
         }
         return pCat === catLower;
       });
@@ -112,12 +120,20 @@ const Shop = () => {
     return 'Shop';
   }, [selectedCategory, queryMaterial]);
 
+  const isSareesCategory = (selectedCategory || '').toLowerCase().trim() === 'sarees';
+
   return (
     <div className="shop-page">
       <div className="shop-header">
         <h1>{pageTitle}</h1>
         <p>Discover our exquisite collection celebrating your elegance</p>
       </div>
+
+      {isSareesCategory && (
+        <div className="shop-category-video">
+          <video src="/videos/blue-saree.mp4" autoPlay loop muted playsInline />
+        </div>
+      )}
 
       <FilterBar
         selectedSort={selectedSort}

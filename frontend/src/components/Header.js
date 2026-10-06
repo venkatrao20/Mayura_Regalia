@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import productService from '../services/productService';
 import customerAuthService from '../services/customerAuthService';
 import ChatBot from './ChatBot';
 import '../styles/Header.css';
+import '../styles/Wishlist.css';
 
 const fashionJewellery = [
   ['BANGLES', '/shop?category=Bangles'],
@@ -13,6 +15,19 @@ const fashionJewellery = [
   ['EARRINGS', '/shop?category=Earrings'],
   ['RINGS', '/shop?category=Rings'],
   ['BRACELETS', '/shop?category=Bracelets'],
+];
+
+const goldJewellery = [
+  ['RINGS', '/shop?category=Gold+Rings'],
+  ['BRACELETS', '/shop?category=Gold+Bracelets'],
+  ['BANGLES', '/shop?category=Gold+Bangles'],
+  ['SMALL CHAINS', '/shop?category=Gold+Chains'],
+  ['PENDANTS', '/shop?category=Gold+Pendants'],
+];
+
+const silverJewellery = [
+  ['SILVER', '/shop?category=Silver'],
+  ['GERMAN SILVER', '/shop?category=German+Silver'],
 ];
 
 const sarees = [
@@ -47,6 +62,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getCartItemCount } = useCart();
+  const { wishlistCount } = useWishlist();
   // Re-evaluated on every render (Header re-renders on route change via
   // useLocation below), so this reflects the latest login/logout state.
   const loggedInCustomer = customerAuthService.isAuthenticated() ? customerAuthService.getCustomer() : null;
@@ -127,6 +143,11 @@ const Header = () => {
         <Link className="mega-heading" to="/shop?category=Jewels" onClick={close}>JEWELLERY</Link>
         <Link to="/shop?category=Jewels&material=22+Carat" onClick={close}>22 CARAT</Link>
         <Link to="/shop?category=Jewels&material=18+Carat" onClick={close}>18 CARAT</Link>
+        <span className="mega-label">SHOP GOLD BY TYPE</span>
+        {goldJewellery.map(([label, path]) => <Link key={label} to={path} onClick={close}>{label}</Link>)}
+
+        <Link className="mega-heading mega-heading-spaced" to="/shop?category=Silver+Jewellery" onClick={close}>SILVER JEWELLERY</Link>
+        {silverJewellery.map(([label, path]) => <Link key={label} to={path} onClick={close}>{label}</Link>)}
 
         <Link className="mega-heading mega-heading-spaced" to="/shop?category=Fashion+Jewels" onClick={close}>FASHION JEWELLERY</Link>
         {fashionJewellery.map(([label, path]) => <Link key={label} to={path} onClick={close}>{label}</Link>)}
@@ -251,6 +272,13 @@ const Header = () => {
             </Link>
           )}
 
+          <Link to="/wishlist" className="wishlist-link" aria-label="My Wishlist" title="Wishlist" onClick={closeMenus}>
+            <svg viewBox="0 0 24 24" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8 3.3 5 6.4 5c1.9 0 3.3 1 4.1 2.3h3C14.3 6 15.7 5 17.6 5c3.1 0 4.9 3 3.7 6.3-1.8 4.6-9.3 9.2-9.3 9.2z" />
+            </svg>
+            {wishlistCount > 0 && <span className="cart-count">{wishlistCount}</span>}
+          </Link>
+
           <Link to="/cart" className="cart-link" aria-label="Shopping Cart">
             <span className="cart-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -263,6 +291,23 @@ const Header = () => {
           </Link>
         </div>
 
+        {/* Instagram — ABOVE WhatsApp */}
+        <a
+          className="instagram-float"
+          href="https://www.instagram.com/mayura.regalia/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Follow Mayura Regalia on Instagram"
+          title="Instagram: @mayura.regalia"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+        </a>
+
+        {/* WhatsApp — BELOW Instagram */}
         <a
           className="whatsapp-float"
           href="https://wa.me/918951084668"

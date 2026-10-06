@@ -23,7 +23,7 @@
 .form-group label { display: block; font-weight: 600; margin-bottom: .45rem; font-size: .86rem; }
 .form-group input, .form-group textarea {
   width: 100%; padding: .82rem .9rem; border: 1px solid #dcd2c6; border-radius: 2px;
-  font-size: .94rem; font-family: inherit; background: #fffdf9; transition: border-color .2s, box-shadow .2s;
+  font-size: .94rem; font-family: inherit; background: #FFFFFF; transition: border-color .2s, box-shadow .2s;
 }
 .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(201,162,39,.12); background: #fff; }
 .form-group input.error, .form-group textarea.error { border-color: #c0392b; }
@@ -32,9 +32,9 @@
 .payment-options { display: grid; gap: .7rem; }
 .payment-option {
   display: flex; align-items: center; gap: .75rem; cursor: pointer; padding: 1rem;
-  border: 1px solid var(--border-color); background: #fffdf9; border-radius: 2px; transition: border-color .2s, background .2s;
+  border: 1px solid var(--border-color); background: #FFFFFF; border-radius: 2px; transition: border-color .2s, background .2s;
 }
-.payment-option:hover { border-color: var(--primary-color); background: #fffaf0; }
+.payment-option:hover { border-color: var(--primary-color); background: #FFFFFF; }
 .payment-option input { width: auto; margin: 0; cursor: pointer; }
 .payment-option span { font-weight: 600; font-size: .88rem; }
 .payment-option.disabled { opacity: .55; cursor: not-allowed; }
@@ -86,7 +86,7 @@
 .saved-for-later { margin-top: 1rem; padding-top: .9rem; border-top: 1px dashed var(--border-color); }
 .saved-for-later h3 { font-size: .82rem; color: var(--light-text); margin-bottom: .7rem; }
 .saved-for-later .bag-item { margin-bottom: .7rem; }
-.coupon-box { display: flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: .55rem .65rem; border: 1px dashed var(--primary-color); border-radius: 2px; background: #fffdf7; }
+.coupon-box { display: flex; align-items: center; gap: .45rem; margin-top: 1rem; padding: .55rem .65rem; border: 1px dashed var(--primary-color); border-radius: 2px; background: #FFFFFF; }
 .coupon-icon { flex-shrink: 0; }
 .coupon-box input { flex: 1; border: 0; background: none; outline: none; font-size: .78rem; min-width: 0; }
 .coupon-box button { border: 0; background: var(--secondary-color); color: #fff; padding: .42rem .75rem; border-radius: 2px; font-size: .74rem; font-weight: 700; cursor: pointer; }

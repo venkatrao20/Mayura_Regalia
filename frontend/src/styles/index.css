@@ -8,20 +8,24 @@
 }
 
  :root {
-  --primary-color: #FFF0F5;
-  --primary-color-dark: #C98699;
-  --primary-gradient: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 100%);
-  --secondary-color: #C97C94;
-  --secondary-color-dark: #A95E76;
-  --secondary-gradient: linear-gradient(135deg, #C97C94 0%, #A95E76 100%);
-  --accent-color: #FFF0F5;
+  --primary-color: #FDE4EE;
+  --brand: #742A40;
+  --brand-dark: #5C2133;
+  --primary-color-dark: var(--brand);
+  --primary-gradient: linear-gradient(135deg, #FDE4EE 0%, #FFFFFF 100%);
+  --secondary-color: var(--brand);
+  --secondary-color-dark: var(--brand-dark);
+  --secondary-gradient: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  --accent-color: #F8C8DC;
   --surface-color: #FFFFFF;
-  --text-color: #604A52;
-  --light-text: #8C717A;
-  --border-color: #F0D6DE;
-  --shadow: 0 2px 10px rgba(176, 112, 132, 0.10);
-  --shadow-lg: 0 14px 32px rgba(176, 112, 132, 0.16);
-  --shadow-gold: 0 10px 24px rgba(176, 112, 132, 0.14);
+  --text-color: #111111;
+  --light-text: #3d3d3d;
+  --border-color: #F3C6D6;
+  --baby-pink: #F8C8DC;
+  --baby-pink-soft: #FDE4EE;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 14px 32px rgba(0, 0, 0, 0.12);
+  --shadow-gold: 0 10px 24px rgba(244, 166, 192, 0.30);
   --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-body: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
@@ -30,7 +34,7 @@
 body {
   font-family: var(--font-body);
   color: var(--text-color);
-  background-color: #FFFFFF;
+  background-color: #FDE4EE;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -47,6 +51,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   color: var(--text-color);
   letter-spacing: 0.2px;
+}
+
+h1, h2 {
+  color: var(--brand);
 }
 
 h1 {
@@ -72,7 +80,7 @@ h2::after {
   width: 64px;
   height: 3px;
   border-radius: 2px;
-  background: #FFF0F5;
+  background: #FDE4EE;
 }
 
 h3 {

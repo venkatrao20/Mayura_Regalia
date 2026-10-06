@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import storeInfo from '../data/storeInfo';
 import '../styles/Footer.css';
 
 const Footer = () => {
@@ -36,36 +37,37 @@ const Footer = () => {
           <h4>Customer Care</h4>
           <ul>
             <li>
-              <a href="tel:8951084668">Call us: 8951084668</a>
+              <a href={`tel:${storeInfo.phone}`}>Call us: {storeInfo.phone}</a>
             </li>
             <li>
-              <a href="/">Shipping</a>
+              <Link to="/track-order">Track Your Order</Link>
+            </li>
+            {storeInfo.googleBusiness && (
+              <li>
+                <a href={storeInfo.googleBusiness} target="_blank" rel="noopener noreferrer">Find us on Google</a>
+              </li>
+            )}
+            <li>
+              <Link to="/contact">Contact Us</Link>
             </li>
             <li>
-              <a href="/">Returns</a>
+              <Link to="/shipping-policy">Shipping &amp; Delivery</Link>
+            </li>
+            <li>
+              <Link to="/returns-policy">Returns &amp; Refunds</Link>
             </li>
             <li>
               <Link to="/#faq">FAQ</Link>
             </li>
           </ul>
         </div>
-
-        <div className="footer-section">
-          <h4>Follow Us</h4>
-          <div className="social-links">
-            <a href="https://www.instagram.com/mayura_regalia/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <rect x="3" y="3" width="18" height="18" rx="5" />
-                <circle cx="12" cy="12" r="4" />
-                <circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none" />
-              </svg>
-            </a>
-          </div>
-        </div>
       </div>
 
       <div className="footer-bottom">
-        <p>&copy; 2026 MAYURA REGALIA. All Rights Reserved.</p>
+        <p className="footer-legal-links">
+          <Link to="/privacy-policy">Privacy Policy</Link> · <Link to="/terms-and-conditions">Terms &amp; Conditions</Link> · <Link to="/shipping-policy">Shipping</Link> · <Link to="/returns-policy">Returns</Link>
+        </p>
+        <p>&copy; 2026 MAYURA REGALIA. All Rights Reserved.{storeInfo.gstin ? ` GSTIN: ${storeInfo.gstin}` : ''}</p>
       </div>
     </footer>
   );

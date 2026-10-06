@@ -5,20 +5,24 @@ import CartSummary from '../components/CartSummary';
 import QuantitySelector from '../components/QuantitySelector';
 import orderService from '../services/orderService';
 import paymentService, { buildUpiLink } from '../services/paymentService';
+import customerAuthService from '../services/customerAuthService';
 import { QRCodeSVG } from 'qrcode.react';
 import '../styles/Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, getCartTotal, clearCart, addToCart, increaseQuantity, decreaseQuantity, removeFromCart } = useCart();
+
+  // Pre-fill form with the logged-in customer's saved address if available.
+  const savedCustomer = customerAuthService.getCustomer();
   const [formData, setFormData] = useState({
-    fullName: '',
-    mobile: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
+    fullName: savedCustomer?.name || '',
+    mobile: savedCustomer?.phone || '',
+    email: savedCustomer?.email || '',
+    address: savedCustomer?.address || '',
+    city: savedCustomer?.city || '',
+    state: savedCustomer?.state || '',
+    pincode: savedCustomer?.pincode || '',
     paymentMethod: 'cod',
   });
   const [errors, setErrors] = useState({});
@@ -26,6 +30,8 @@ const Checkout = () => {
   const [couponInput, setCouponInput] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCouponData, setAppliedCouponData] = useState(null); // { code, discount }
   const [giftEnabled, setGiftEnabled] = useState(false);
   const [giftMessage, setGiftMessage] = useState('');
   const [savedForLater, setSavedForLater] = useState([]);
@@ -66,20 +72,33 @@ const Checkout = () => {
 
   const subtotal = getCartTotal();
   const shipping = subtotal > 999 ? 0 : 100;
-  const discount = couponApplied ? Math.min(100, subtotal) : 0;
+  const discount = couponApplied && appliedCouponData ? appliedCouponData.discount : 0;
   const total = subtotal + shipping - discount;
 
   const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', {
     weekday: 'short', month: 'short', day: 'numeric',
   });
 
-  const applyCoupon = () => {
-    if (couponInput.trim().toUpperCase() === 'SAVE100') {
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) { setCouponError('Please enter a coupon code.'); return; }
+    // Reset any previously applied coupon so the total doesn't use a stale discount.
+    setCouponApplied(false);
+    setAppliedCouponData(null);
+    setCouponError('');
+    setCouponLoading(true);
+    try {
+      const { apiRequest } = await import('../services/api');
+      const result = await apiRequest('/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code, subtotal }),
+      });
+      setAppliedCouponData(result); // { code, discount, type, value }
       setCouponApplied(true);
-      setCouponError('');
-    } else {
-      setCouponApplied(false);
-      setCouponError('Invalid or expired code');
+    } catch (err) {
+      setCouponError(err.message || 'Invalid or expired coupon code');
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -98,7 +117,7 @@ const Checkout = () => {
       <div className="checkout-page">
         <div className="empty-checkout">
           <span className="checkout-kicker">MAYURA REGALIA</span>
-          <h1>Your bag is empty</h1>
+          <h1>Your cart is empty</h1>
           <p>Add a piece you love and return here when you're ready to complete your order.</p>
           <button onClick={() => navigate('/shop')} className="btn btn-primary">
             BACK TO SHOP
@@ -292,7 +311,7 @@ const Checkout = () => {
         },
         items: cart,
         paymentMethod: formData.paymentMethod,
-        couponCode: couponApplied ? 'SAVE100' : null,
+        couponCode: couponApplied && appliedCouponData ? appliedCouponData.code : null,
         giftMessage: giftEnabled ? giftMessage : null,
         subtotal,
         shipping,
@@ -573,13 +592,13 @@ const Checkout = () => {
             className="btn btn-primary btn-full"
             disabled={loading || cart.length === 0}
           >
-            {loading ? 'PROCESSING...' : cart.length === 0 ? 'YOUR BAG IS EMPTY' : 'PLACE ORDER'}
+            {loading ? 'PROCESSING...' : cart.length === 0 ? 'YOUR CART IS EMPTY' : 'PLACE ORDER'}
           </button>
         </form>
 
         <div className="checkout-summary">
           <div className="summary-card bag-card">
-            <h2>Your Bag ({cart.length})</h2>
+            <h2>Your Cart ({cart.length})</h2>
 
             {shipping === 0 ? (
               <div className="shipping-banner unlocked">
@@ -634,7 +653,7 @@ const Checkout = () => {
                     <div className="bag-item-info">
                       <p className="bag-item-name">{item.name}</p>
                       <p className="bag-item-price">₹{item.price}</p>
-                      <button type="button" className="save-later-btn" onClick={() => moveBackToBag(item)}>Move back to bag</button>
+                      <button type="button" className="save-later-btn" onClick={() => moveBackToBag(item)}>Move back to cart</button>
                     </div>
                   </div>
                 ))}
@@ -645,13 +664,22 @@ const Checkout = () => {
               <span className="coupon-icon">🏷️</span>
               <input
                 type="text"
-                placeholder="Enter coupon code (try SAVE100)"
+                placeholder="Enter coupon code"
                 value={couponInput}
-                onChange={(e) => { setCouponInput(e.target.value); setCouponError(''); }}
+                onChange={(e) => {
+                  setCouponInput(e.target.value);
+                  setCouponError('');
+                  // Clear applied coupon if the user edits the code.
+                  if (couponApplied) { setCouponApplied(false); setAppliedCouponData(null); }
+                }}
               />
-              <button type="button" onClick={applyCoupon}>Apply</button>
+              <button type="button" onClick={applyCoupon} disabled={couponLoading}>
+                {couponLoading ? 'Checking…' : 'Apply'}
+              </button>
             </div>
-            {couponApplied && <p className="coupon-success">🎉 ₹100 off unlocked with SAVE100</p>}
+            {couponApplied && appliedCouponData && (
+              <p className="coupon-success">🎉 ₹{appliedCouponData.discount} off unlocked with {appliedCouponData.code}</p>
+            )}
             {couponError && <p className="coupon-error">{couponError}</p>}
 
             <label className="gift-toggle">
@@ -681,7 +709,7 @@ const Checkout = () => {
 
           <div className="trust-badges">
             <div><span>🛡️</span>Secure Checkout</div>
-            <div><span>↩️</span>15 Days Free Return</div>
+            <div><span>↩️</span>10 Days Return Policy</div>
             <div><span>🏆</span>Trusted Craftsmanship</div>
           </div>
         </div>

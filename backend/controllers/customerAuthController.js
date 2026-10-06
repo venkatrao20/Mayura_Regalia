@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const customerModel = require('../models/customerModel');
 const orderModel = require('../models/orderModel');
+const { getPool } = require('../config/db');
 const { generateOtp, hashOtp, safeEqual, sendOtpSms } = require('../utils/otp');
 
 const OTP_TTL_MINUTES = 10;
@@ -197,4 +198,106 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { signup, login, me, myOrders, forgotPassword, resetPassword };
+// Customer cancels their own order. Only allowed when order status is
+// 'pending' or 'processing'. This writes a note into order_status_history
+// and updates the order row — it does NOT touch admin order management.
+async function cancelOrder(req, res) {
+  try {
+    const orderId = Number(req.params.id);
+    // Security: fetch the order and verify it belongs to this customer.
+    const order = await orderModel.findById(orderId);
+    if (!order || order.customerId !== req.customer.id) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    const cancellable = ['pending', 'processing'];
+    if (!cancellable.includes(order.orderStatus)) {
+      return res.status(400).json({ message: `Orders can only be cancelled when they are pending or in processing. Current status: ${order.orderStatus}.` });
+    }
+    const updated = await orderModel.updateStatus(orderId, { orderStatus: 'cancelled' });
+    res.json(updated);
+  } catch (error) {
+    console.error('Customer cancel order error:', error);
+    res.status(500).json({ message: 'Failed to cancel order. Please try again.' });
+  }
+}
+
+// Customer requests a return or replacement. Only allowed when:
+//   - Order status is 'delivered'
+//   - Request is made within 10 days of delivery (we use updated_at as the
+//     delivered-at timestamp since the status-change timestamp is stored there).
+// The request is stored in a dedicated order_return_requests table.
+async function requestReturn(req, res) {
+  try {
+    const orderId = Number(req.params.id);
+    const requestType = String(req.body.type || '').trim().toLowerCase(); // 'return' or 'replace'
+    const reason = String(req.body.reason || '').trim().slice(0, 500);
+
+    if (!['return', 'replace'].includes(requestType)) {
+      return res.status(400).json({ message: "Type must be 'return' or 'replace'" });
+    }
+    if (!reason) {
+      return res.status(400).json({ message: 'Please provide a reason for your request.' });
+    }
+
+    // Security: fetch the order and verify it belongs to this customer.
+    const order = await orderModel.findById(orderId);
+    if (!order || order.customerId !== req.customer.id) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    if (order.orderStatus !== 'delivered') {
+      return res.status(400).json({ message: 'Return or replacement can only be requested for delivered orders.' });
+    }
+
+    // Check 10-day eligibility window using the order's updatedAt (last status change).
+    const deliveredAt = new Date(order.updatedAt);
+    const daysSinceDelivery = Math.floor((Date.now() - deliveredAt.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSinceDelivery > 10) {
+      return res.status(400).json({ message: 'The 10-day return/replacement window for this order has expired.' });
+    }
+
+    const pool = getPool();
+    // Check for an existing pending request on this order.
+    const [existing] = await pool.query(
+      'SELECT id FROM order_return_requests WHERE order_id = ? AND status = \'pending\' LIMIT 1',
+      [orderId]
+    );
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'A return/replacement request for this order is already under review.' });
+    }
+
+    // Ensure the return requests table exists (created lazily so no migration is needed).
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS order_return_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        customer_id INT NOT NULL,
+        type ENUM('return','replace') NOT NULL,
+        reason TEXT,
+        status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX (order_id),
+        INDEX (customer_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    const [result] = await pool.query(
+      `INSERT INTO order_return_requests (order_id, customer_id, type, reason) VALUES (?, ?, ?, ?)`,
+      [orderId, req.customer.id, requestType, reason]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      orderId,
+      type: requestType,
+      reason,
+      status: 'pending',
+      message: `Your ${requestType} request has been submitted and is under review.`,
+    });
+  } catch (error) {
+    console.error('Customer return/replace request error:', error);
+    res.status(500).json({ message: 'Failed to submit request. Please try again.' });
+  }
+}
+
+module.exports = { signup, login, me, myOrders, forgotPassword, resetPassword, cancelOrder, requestReturn };
